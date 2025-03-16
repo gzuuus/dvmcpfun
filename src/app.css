@@ -4,7 +4,7 @@
 @layer base {
 	:root {
 		/* Light theme - improved for visibility */
-		--background: 120 30% 97%;
+		--background: 120 30% 96%;
 		--foreground: 204 60% 30%;
 		--muted: 204 20% 88%;
 		--muted-foreground: 204 30% 40%;
@@ -14,7 +14,7 @@
 		--card-foreground: 204 60% 30%;
 		--border: 204 30% 85%;
 		--input: 204 30% 85%;
-		--primary: 90 61% 65%;
+		--primary: 90 61% 5%;
 		--primary-foreground: 120 100% 12%;
 		--secondary: 204 40% 92%;
 		--secondary-foreground: 204 60% 25%;

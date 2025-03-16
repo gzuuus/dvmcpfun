@@ -50,7 +50,17 @@
 							<p class="text-[#B4D2E7]/90">{$toolQuery.data.about}</p>
 						</div>
 					{/if}
-
+					<div class="mb-6 flex flex-wrap gap-2">
+						{#if $toolQuery.data.toolNames && $toolQuery.data.toolNames.length > 0}
+							{#each $toolQuery.data.toolNames as toolName}
+								<span
+									class="overflow-hidden rounded-full bg-[#C8E9A0]/20 px-3 py-1 text-sm overflow-ellipsis whitespace-nowrap text-[#C8E9A0]"
+								>
+									{toolName}
+								</span>
+							{/each}
+						{/if}
+					</div>
 					{#if $toolQuery.data.capabilities && $toolQuery.data.capabilities.length > 0}
 						<div class="mb-6">
 							<h2 class="mb-3 text-xl font-semibold text-[#C8E9A0]">Capabilities</h2>

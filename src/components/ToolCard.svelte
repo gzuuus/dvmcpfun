@@ -8,6 +8,8 @@
 	function truncatePubkey(pubkey: string): string {
 		return `${pubkey.slice(0, 8)}...${pubkey.slice(-3)}`;
 	}
+
+	$: console.log(tool);
 </script>
 
 <a
@@ -42,7 +44,13 @@
 		</p>
 	</div>
 
-	<div class="mt-4 flex gap-2">
+	<div class="mt-4 flex flex-wrap gap-2">
+		{#if tool.about}
+			<p class="mt-2 line-clamp-2 text-[#B4D2E7]/70">{tool.about}</p>
+		{/if}
+
+		<p class="mt-4 line-clamp-2 text-[#B4D2E7]/90">{tool.description}</p>
+
 		{#if tool.parameters}
 			<span class="rounded-full bg-[#C8E9A0]/20 px-3 py-1 text-sm text-[#C8E9A0]">
 				{Object.keys(tool.parameters).length} parameter{Object.keys(tool.parameters).length === 1
@@ -58,8 +66,15 @@
 			{/each}
 		{/if}
 	</div>
-	<p class="mt-4 line-clamp-2 text-[#B4D2E7]/90">{tool.description}</p>
-	{#if tool.about}
-		<p class="mt-2 line-clamp-2 text-[#B4D2E7]/70">{tool.about}</p>
-	{/if}
+	<div class="mt-4 flex flex-wrap gap-2">
+		{#if tool.toolNames && tool.toolNames.length > 0}
+			{#each tool.toolNames as toolName}
+				<span
+					class="overflow-hidden rounded-full bg-[#C8E9A0]/20 px-3 py-1 text-sm overflow-ellipsis whitespace-nowrap text-[#C8E9A0]"
+				>
+					{toolName}
+				</span>
+			{/each}
+		{/if}
+	</div>
 </a>

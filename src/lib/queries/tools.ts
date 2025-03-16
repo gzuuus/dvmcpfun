@@ -12,6 +12,7 @@ export type McpTool = {
 	eventId?: string;
 	capabilities?: string[];
 	about?: string;
+	toolNames?: string[];
 	rawContent?: any; // For debugging
 };
 
@@ -19,6 +20,7 @@ const transformToolEvent = (event: NDKEvent): McpTool => {
 	try {
 		const content = JSON.parse(event.content);
 		const capabilities = event.tags.filter((tag) => tag[0] === 'capabilities').map((tag) => tag[1]);
+		const toolNames = event.tags.filter((tag) => tag[0] == 't').map((tag) => tag[1]);
 		return {
 			name: content.name || 'Unknown Tool',
 			description: content.description || '',
@@ -27,6 +29,7 @@ const transformToolEvent = (event: NDKEvent): McpTool => {
 			eventId: event.id,
 			capabilities: capabilities,
 			about: content.about,
+			toolNames,
 			rawContent: {
 				parsed: content,
 				id: event.id,

@@ -40,6 +40,8 @@
 		"@sjsf/shadcn-theme": "^1.9.2",
 		"@tanstack/svelte-query": "^5.67.2",
 		"ajv": "8",
+		"lucide-svelte": "^0.482.0",
+		"mode-watcher": "^0.5.1",
 		"nostr-tools": "^2.11.0"
 	}
 }

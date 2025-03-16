@@ -17,7 +17,9 @@
 	<div class="space-y-1">
 		<div class="flex items-center gap-3">
 			{#if $authorQuery.isLoading}
-				<div class="h-8 w-8 rounded-lg border border-[#C8E9A0]/20 bg-[#C8E9A0]/10 animate-pulse"></div>
+				<div
+					class="h-8 w-8 animate-pulse rounded-lg border border-[#C8E9A0]/20 bg-[#C8E9A0]/10"
+				></div>
 			{:else if $authorQuery.data?.picture}
 				<img
 					src={$authorQuery.data.picture}
@@ -43,7 +45,9 @@
 	<div class="mt-4 flex gap-2">
 		{#if tool.parameters}
 			<span class="rounded-full bg-[#C8E9A0]/20 px-3 py-1 text-sm text-[#C8E9A0]">
-				{Object.keys(tool.parameters).length} parameter{Object.keys(tool.parameters).length === 1 ? '' : 's'}
+				{Object.keys(tool.parameters).length} parameter{Object.keys(tool.parameters).length === 1
+					? ''
+					: 's'}
 			</span>
 		{/if}
 		{#if tool.capabilities && tool.capabilities.length > 0}
@@ -54,8 +58,8 @@
 			{/each}
 		{/if}
 	</div>
-	<p class="mt-4 text-[#B4D2E7]/90 line-clamp-2">{tool.description}</p>
+	<p class="mt-4 line-clamp-2 text-[#B4D2E7]/90">{tool.description}</p>
 	{#if tool.about}
-		<p class="mt-2 text-[#B4D2E7]/70 line-clamp-2">{tool.about}</p>
+		<p class="mt-2 line-clamp-2 text-[#B4D2E7]/70">{tool.about}</p>
 	{/if}
-</a> 
+</a>

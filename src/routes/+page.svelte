@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { createToolsQuery } from '$lib/queries/tools';
-	import type { McpTool } from '$lib/queries/tools';
 	import Header from '../components/Header.svelte';
 	import ToolCard from '../components/ToolCard.svelte';
 
@@ -36,9 +35,9 @@
 		{#if $toolsQuery.isLoading}
 			<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
 				{#each Array(6) as _}
-					<div class="group rounded-lg border border-[#C8E9A0]/20 bg-[#000100] p-6 animate-pulse">
-						<div class="h-6 bg-[#C8E9A0]/20 rounded w-3/4 mb-4"></div>
-						<div class="h-4 bg-[#C8E9A0]/20 rounded w-1/2"></div>
+					<div class="group animate-pulse rounded-lg border border-[#C8E9A0]/20 bg-[#000100] p-6">
+						<div class="mb-4 h-6 w-3/4 rounded bg-[#C8E9A0]/20"></div>
+						<div class="h-4 w-1/2 rounded bg-[#C8E9A0]/20"></div>
 					</div>
 				{/each}
 			</div>

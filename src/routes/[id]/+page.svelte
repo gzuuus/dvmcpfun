@@ -5,11 +5,11 @@
 	let processedDvmcp: any;
 
 	// Process the dvmcp data
-	$: dvmcp = dvmcpsData.dvmcps.find(d => d.id === $page.params.id);
+	$: dvmcp = dvmcpsData.dvmcps.find((d) => d.id === $page.params.id);
 	$: if (dvmcp) {
 		const content = JSON.parse(dvmcp.content);
-		const dTag = dvmcp.tags.find(tag => tag[0] === 'd')?.[1] || '';
-		const capabilitiesTag = dvmcp.tags.find(tag => tag[0] === 'capabilities')?.[1] || '';
+		const dTag = dvmcp.tags.find((tag) => tag[0] === 'd')?.[1] || '';
+		const capabilitiesTag = dvmcp.tags.find((tag) => tag[0] === 'capabilities')?.[1] || '';
 		const createdDate = new Date(dvmcp.created_at * 1000).toLocaleString();
 
 		processedDvmcp = {
@@ -56,11 +56,15 @@
 					<span class="text-[#B4D2E7]/60">{processedDvmcp.createdDate}</span>
 				</div>
 				<div class="mb-4 flex gap-2">
-					<span class="rounded-full bg-[#C8E9A0]/20 px-3 py-1 text-sm text-[#C8E9A0]">{processedDvmcp.dTag}</span>
-					<span class="rounded-full bg-[#C8E9A0]/20 px-3 py-1 text-sm text-[#C8E9A0]">{processedDvmcp.capabilitiesTag}</span>
+					<span class="rounded-full bg-[#C8E9A0]/20 px-3 py-1 text-sm text-[#C8E9A0]"
+						>{processedDvmcp.dTag}</span
+					>
+					<span class="rounded-full bg-[#C8E9A0]/20 px-3 py-1 text-sm text-[#C8E9A0]"
+						>{processedDvmcp.capabilitiesTag}</span
+					>
 				</div>
 				<p class="mb-6 text-[#B4D2E7]/90">{processedDvmcp.processedContent.about}</p>
-				
+
 				<div class="space-y-6">
 					<h2 class="text-xl font-semibold text-[#C8E9A0]">Raw Data</h2>
 					<pre class="overflow-x-auto rounded bg-[#000100] p-4 text-sm text-[#B4D2E7]/60">
@@ -72,10 +76,13 @@
 			<div class="text-center">
 				<h1 class="text-2xl font-semibold text-[#C8E9A0]">DVMCP not found</h1>
 				<p class="mt-2 text-[#B4D2E7]/90">The DVMCP you're looking for doesn't exist.</p>
-				<a href="/" class="mt-4 inline-block rounded-md bg-[#C8E9A0] px-4 py-2 text-[#000100] transition-colors hover:bg-[#C8E9A0]/90">
+				<a
+					href="/"
+					class="mt-4 inline-block rounded-md bg-[#C8E9A0] px-4 py-2 text-[#000100] transition-colors hover:bg-[#C8E9A0]/90"
+				>
 					Back to Home
 				</a>
 			</div>
 		{/if}
 	</main>
-</div> 
+</div>

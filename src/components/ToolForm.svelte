@@ -7,8 +7,11 @@
 	import type { UiSchemaRoot } from '@sjsf/form';
 	import { onDestroy } from 'svelte';
 	import { toolExecutor } from '$lib/services/toolExecutor';
+	import type { McpTool } from '$lib/queries/tools';
 
+	export let provider: McpTool;
 	export let tool: { name: string; inputSchema: any };
+
 	let uiSchema: UiSchemaRoot = {
 		submitButton: {
 			'ui:options': {
@@ -50,7 +53,7 @@
 			uiSchema,
 			validator,
 			translation,
-			onSubmit: (value) => onSubmit(value, tool)
+			onSubmit: (value) => onSubmit(value, tool, provider.author)
 		})}
 		{#if createdForm}
 			<div class="space-y-4">

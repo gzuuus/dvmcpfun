@@ -95,7 +95,7 @@
 				{#if $toolQuery.data?.rawContent?.parsed?.tools?.length > 0}
 					<div class="space-y-8">
 						{#each $toolQuery.data.rawContent.parsed.tools as tool}
-							<ToolForm {tool} />
+							<ToolForm {tool} provider={$toolQuery.data} />
 						{/each}
 					</div>
 				{:else}

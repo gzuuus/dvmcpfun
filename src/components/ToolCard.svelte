@@ -70,7 +70,7 @@
 		{#if tool.toolNames && tool.toolNames.length > 0}
 			{#each tool.toolNames as toolName}
 				<span
-					class="overflow-hidden rounded-full bg-[#C8E9A0]/20 px-3 py-1 text-sm overflow-ellipsis whitespace-nowrap text-[#C8E9A0]"
+					class="overflow-hidden overflow-ellipsis whitespace-nowrap rounded-full bg-[#C8E9A0]/20 px-3 py-1 text-sm text-[#C8E9A0]"
 				>
 					{toolName}
 				</span>

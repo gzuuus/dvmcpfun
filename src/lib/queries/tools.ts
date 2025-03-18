@@ -3,82 +3,23 @@ import type { NDKFilter } from '@nostr-dev-kit/ndk';
 import { nostrService } from '$lib/stores/nostr';
 import { toolKeys } from './queryKeyFactory';
 import { createQuery } from '@tanstack/svelte-query';
-
-export type McpTool = {
-	name: string;
-	description: string;
-	parameters?: Record<string, unknown>;
-	author: string;
-	eventId?: string;
-	capabilities?: string[];
-	about?: string;
-	toolNames?: string[];
-	rawContent?: any; // For debugging
-};
-
-const transformToolEvent = (event: NDKEvent): McpTool => {
-	try {
-		const content = JSON.parse(event.content);
-		const capabilities = event.tags.filter((tag) => tag[0] === 'capabilities').map((tag) => tag[1]);
-		const toolNames = event.tags.filter((tag) => tag[0] == 't').map((tag) => tag[1]);
-		return {
-			name: content.name || 'Unknown Tool',
-			description: content.description || '',
-			parameters: content.parameters,
-			author: event.pubkey,
-			eventId: event.id,
-			capabilities: capabilities,
-			about: content.about,
-			toolNames,
-			rawContent: {
-				parsed: content,
-				id: event.id,
-				pubkey: event.pubkey,
-				created_at: event.created_at,
-				kind: event.kind,
-				content: event.content,
-				tags: event.tags,
-				sig: event.sig
-			}
-		};
-	} catch (e) {
-		console.error('Error parsing tool event:', e);
-		return {
-			name: 'Error parsing tool',
-			description: 'Could not parse tool data',
-			author: event.pubkey,
-			eventId: event.id,
-			capabilities: [],
-			rawContent: {
-				error: 'Could not parse content',
-				id: event.id,
-				pubkey: event.pubkey,
-				created_at: event.created_at,
-				kind: event.kind,
-				content: event.content,
-				tags: event.tags,
-				sig: event.sig
-			}
-		};
-	}
-};
+import { parseDVMCP } from '$lib/utils/tools';
 
 export const fetchTools = async () => {
-	// Wait for connection if not already connected
 	if (!nostrService.isConnected) {
 		await nostrService.connect();
 	}
 
 	const filter: NDKFilter = {
-		kinds: [31990 as NDKKind], // MCP tool kind
-		'#t': ['mcp'] // MCP tag
+		kinds: [31990 as NDKKind],
+		'#t': ['mcp']
 	};
 
 	const events = await nostrService.ndkInstance.fetchEvents(filter);
-	const tools = Array.from(events).map(transformToolEvent);
-
-	// Sort by name
-	return tools.sort((a, b) => a.name.localeCompare(b.name));
+	const tools = (await Promise.all(Array.from(events).map(parseDVMCP))).filter(
+		(tool) => tool !== null
+	);
+	return tools;
 };
 
 export const fetchToolById = async (id: string) => {
@@ -91,18 +32,18 @@ export const fetchToolById = async (id: string) => {
 	if (!event) {
 		throw new Error('Tool not found');
 	}
-	return transformToolEvent(event);
+	return parseDVMCP(event);
 };
 
 // Svelte Query hooks
-export const createToolsQuery = () => {
+export const createDVMCPsQuery = () => {
 	return createQuery({
 		queryKey: toolKeys.all,
 		queryFn: fetchTools
 	});
 };
 
-export const createDvmcpQuery = (id: string) => {
+export const createDVMCPQuery = (id: string) => {
 	return createQuery({
 		queryKey: toolKeys.details(id),
 		queryFn: () => fetchToolById(id),

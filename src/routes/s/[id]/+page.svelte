@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { createDvmcpQuery } from '$lib/queries/tools';
 	import { setThemeContext } from '@sjsf/shadcn-theme';
 	import { components } from '@sjsf/shadcn-theme/default';
-	import ToolForm from '../../../components/ToolForm.svelte';
+	import ToolForm from '$lib/components/ToolForm.svelte';
 	import * as Accordion from '$lib/components/ui/accordion/index.js';
+	import { createDVMCPQuery } from '$lib/queries/tools';
 
-	const dvmcpQuery = createDvmcpQuery($page.params.id);
+	const dvmcpQuery = createDVMCPQuery($page.params.id);
 
 	// Set up shadcn theme
 	setThemeContext({ components });
@@ -39,7 +39,7 @@
 			<!-- Tool Card -->
 			<div class="rounded-lg border border-primary/20 bg-background p-6">
 				<h1 class="mb-2 text-3xl font-bold text-primary">{$dvmcpQuery.data.name}</h1>
-				<p class="mb-6 text-lg text-primary/50">{$dvmcpQuery.data.description}</p>
+				<p class="mb-6 text-lg text-primary/50">{$dvmcpQuery.data.about}</p>
 
 				{#if $dvmcpQuery.data.about}
 					<div class="mb-6">
@@ -71,31 +71,18 @@
 					</div>
 				{/if}
 
-				{#if $dvmcpQuery.data.parameters}
-					<div class="mb-6">
-						<h2 class="mb-3 text-xl font-semibold text-primary">Parameters</h2>
-						<div class="rounded-lg border border-primary/20 bg-background p-4">
-							<pre class="overflow-auto font-mono text-sm text-primary/50">{JSON.stringify(
-									$dvmcpQuery.data.parameters,
-									null,
-									2
-								)}</pre>
-						</div>
-					</div>
-				{/if}
-
 				<div class="text-sm text-primary/50">
-					<p>Author: {$dvmcpQuery.data.author}</p>
-					<p>Event ID: {$dvmcpQuery.data.eventId}</p>
+					<p>Author: {$dvmcpQuery.data.event.pubkey}</p>
+					<p>Event ID: {$dvmcpQuery.data.event.id}</p>
 				</div>
 			</div>
 
 			<!-- Try it out section -->
 			<div class="rounded-lg border border-primary/20 bg-background p-6">
 				<h2 class="mb-3 text-xl font-semibold text-primary">Try it out</h2>
-				{#if $dvmcpQuery.data?.rawContent?.parsed?.tools?.length > 0}
+				{#if $dvmcpQuery.data?.tools?.length > 0}
 					<div class="space-y-8">
-						{#each $dvmcpQuery.data.rawContent.parsed.tools as tool}
+						{#each $dvmcpQuery.data.tools as tool}
 							<Accordion.Root type="single" class="w-full sm:max-w-[70%]">
 								<Accordion.Item value="item-1">
 									<Accordion.Trigger>{tool.name}</Accordion.Trigger>
@@ -116,7 +103,7 @@
 				<h2 class="mb-3 text-xl font-semibold text-primary">Raw Data</h2>
 				<div class="rounded-lg border border-primary/20 bg-background p-4">
 					<pre class="overflow-auto font-mono text-sm text-primary/50">{JSON.stringify(
-							$dvmcpQuery.data.rawContent,
+							$dvmcpQuery.data.event,
 							null,
 							2
 						)}</pre>

@@ -2,15 +2,16 @@
 	import { createForm3, RawForm } from '@sjsf/form';
 	import { translation } from '@sjsf/form/translations/en';
 	import { theme } from '@sjsf/shadcn-theme';
-	import { validator } from '../routes/s/[id]/_validator';
-	import { onSubmit } from '../routes/s/[id]/_on-submit';
-	import type { UiSchemaRoot } from '@sjsf/form';
+	import type { FormOptions, UiSchemaRoot } from '@sjsf/form';
 	import { onDestroy } from 'svelte';
 	import { toolExecutor } from '$lib/services/toolExecutor';
-	import type { McpTool } from '$lib/queries/tools';
+	import { validator } from '../../routes/s/[id]/_validator';
+	import { onSubmit } from '../../routes/s/[id]/_on-submit';
+	import type { ExtendedDVMCP } from '$lib/types';
+	import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 
-	export let provider: McpTool;
-	export let tool: { name: string; inputSchema: any };
+	export let provider: ExtendedDVMCP;
+	export let tool: Tool;
 
 	let uiSchema: UiSchemaRoot = {
 		submitButton: {
@@ -49,11 +50,11 @@
 		{@const createdForm = createForm3({
 			...theme,
 			initialValue,
-			schema: tool.inputSchema,
+			schema: tool.inputSchema as FormOptions<string, string>['schema'],
 			uiSchema,
 			validator,
 			translation,
-			onSubmit: (value) => onSubmit(value, tool, provider.author)
+			onSubmit: (value) => onSubmit(value, tool, provider.event.pubkey)
 		})}
 		{#if createdForm}
 			<div class="space-y-4">

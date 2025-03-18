@@ -1,5 +1,5 @@
 import { toolExecutor } from '$lib/services/toolExecutor';
-import type { Tool } from '$lib/types';
+import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 
 export const onSubmit = async (value: unknown, tool: Tool, providerPk: string) => {
 	try {

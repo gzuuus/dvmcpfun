@@ -1,19 +1,17 @@
 <script lang="ts">
 	import { createAuthorQuery } from '$lib/queries/authors';
-	import type { McpTool } from '$lib/queries/tools';
+	import type { ExtendedDVMCP } from '$lib/types';
 
-	export let tool: McpTool;
-	const authorQuery = createAuthorQuery(tool.author);
+	export let dvmcp: ExtendedDVMCP;
+	const authorQuery = createAuthorQuery(dvmcp.event.pubkey);
 
 	function truncatePubkey(pubkey: string): string {
 		return `${pubkey.slice(0, 8)}...${pubkey.slice(-3)}`;
 	}
-
-	$: console.log(tool);
 </script>
 
 <a
-	href="/s/{tool.eventId}"
+	href="/s/{dvmcp.event.id}"
 	class="group rounded-lg border border-primary/20 bg-background p-6 transition-colors hover:border-primary/50"
 >
 	<div class="space-y-1">
@@ -30,34 +28,27 @@
 				<div class="h-8 w-8 rounded-lg border border-primary/20 bg-border/10"></div>
 			{/if}
 			<h3 class="text-xl font-semibold text-primary group-hover:text-primary/50">
-				{tool.name}
+				{dvmcp.name}
 			</h3>
 		</div>
 		<p class="text-sm text-primary/60">
 			{#if $authorQuery.isLoading}
 				<span class="animate-pulse">Loading author...</span>
 			{:else}
-				by {$authorQuery.data?.name || truncatePubkey(tool.author)}
+				by {$authorQuery.data?.name || truncatePubkey(dvmcp.event.pubkey)}
 			{/if}
 		</p>
 	</div>
 
 	<div class="mt-4 flex w-fit flex-col flex-wrap gap-2">
-		{#if tool.about}
-			<p class="mt-2 line-clamp-2 text-primary/50">{tool.about}</p>
+		{#if dvmcp.about}
+			<p class="mt-2 line-clamp-2 text-primary/50">{dvmcp.about}</p>
 		{/if}
 
-		<p class="mt-4 line-clamp-2 text-primary/50">{tool.description}</p>
+		<p class="mt-4 line-clamp-2 text-primary/50">{dvmcp.about}</p>
 
-		{#if tool.parameters}
-			<span class="rounded-full bg-border/20 px-3 py-1 text-sm text-primary">
-				{Object.keys(tool.parameters).length} parameter{Object.keys(tool.parameters).length === 1
-					? ''
-					: 's'}
-			</span>
-		{/if}
-		{#if tool.capabilities && tool.capabilities.length > 0}
-			{#each tool.capabilities as capability}
+		{#if dvmcp.capabilities && dvmcp.capabilities.length > 0}
+			{#each dvmcp.capabilities as capability}
 				<span class="w-fit rounded-full bg-border/20 px-3 py-1 text-sm text-primary/50">
 					{capability}
 				</span>
@@ -65,8 +56,8 @@
 		{/if}
 	</div>
 	<div class="mt-4 flex flex-wrap gap-2">
-		{#if tool.toolNames && tool.toolNames.length > 0}
-			{#each tool.toolNames as toolName}
+		{#if dvmcp.toolNames && dvmcp.toolNames.length > 0}
+			{#each dvmcp.toolNames as toolName}
 				<span
 					class="overflow-hidden overflow-ellipsis whitespace-nowrap rounded-full bg-border/20 px-3 py-1 text-sm text-primary/50"
 				>

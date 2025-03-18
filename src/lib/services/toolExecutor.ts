@@ -38,13 +38,13 @@ export class ToolExecutor {
 		return this.executionStates.get(toolName)!;
 	}
 
-	public async executeTool(tool: Tool, params: unknown): Promise<unknown> {
+	public async executeTool(tool: Tool, params: unknown, providerPk: string): Promise<unknown> {
 		const executionStore = this.getExecutionStore(tool.name);
 
 		executionStore.update((state) => ({ ...state, status: 'loading', result: null, error: null }));
 
 		try {
-			const result = await this.executeToolInternal(tool, params);
+			const result = await this.executeToolInternal(tool, params, providerPk);
 			executionStore.update((state) => ({ ...state, status: 'success', result, error: null }));
 			return result;
 		} catch (error) {
@@ -69,11 +69,15 @@ export class ToolExecutor {
 		this.executionStates.forEach((_, toolName) => this.resetExecutionState(toolName));
 	}
 
-	private async executeToolInternal(tool: Tool, params: unknown): Promise<unknown> {
+	private async executeToolInternal(
+		tool: Tool,
+		params: unknown,
+		providerPk: string
+	): Promise<unknown> {
 		return new Promise(async (resolve, reject) => {
 			try {
-				const request = await this.createToolRequest(tool, params);
-				const executionId = request.id;
+				const requestEvent = await this.createToolRequest(tool, params, providerPk);
+				const executionId = requestEvent.id;
 
 				// Set up timeout
 				const timeoutId = setTimeout(() => {
@@ -118,7 +122,7 @@ export class ToolExecutor {
 				this.executionSubscriptions.set(executionId, subscription);
 
 				// Publish the request
-				await request.publish();
+				await requestEvent.publish();
 			} catch (error) {
 				reject(error);
 			}
@@ -138,7 +142,11 @@ export class ToolExecutor {
 		}
 	}
 
-	private async createToolRequest(tool: Tool, params: unknown): Promise<NDKEvent> {
+	private async createToolRequest(
+		tool: Tool,
+		params: unknown,
+		provider: string
+	): Promise<NDKEvent> {
 		const request = new NDKEvent(this.ndkInstance);
 
 		request.kind = TOOL_REQUEST_KIND;
@@ -154,7 +162,7 @@ export class ToolExecutor {
 		});
 
 		request.tags.push(['c', 'execute-tool']);
-
+		request.tags.push(['p', provider]);
 		// Sign the event
 		if (!this.ndkInstance.signer) {
 			this.ndkInstance.signer = new NDKPrivateKeySigner(generateSecretKey());

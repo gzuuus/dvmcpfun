@@ -1,1 +1,74 @@
-@import 'tailwindcss';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@layer base {
+	:root {
+		/* Light theme - improved for visibility */
+		--background: 120 30% 96%;
+		--foreground: 204 60% 30%;
+		--muted: 204 20% 88%;
+		--muted-foreground: 204 30% 40%;
+		--popover: 120 30% 97%;
+		--popover-foreground: 204 60% 30%;
+		--card: 120 15% 98%;
+		--card-foreground: 204 60% 30%;
+		--border: 204 30% 85%;
+		--input: 204 30% 85%;
+		--primary: 90 61% 5%;
+		--primary-foreground: 120 100% 12%;
+		--secondary: 204 40% 92%;
+		--secondary-foreground: 204 60% 25%;
+		--accent: 90 40% 80%;
+		--accent-foreground: 120 60% 15%;
+		--destructive: 0 72% 51%;
+		--destructive-foreground: 0 0% 100%;
+		--ring: 90 61% 60%;
+		--radius: 0.5rem;
+		--sidebar-background: 90 10% 94%;
+		--sidebar-foreground: 204 60% 30%;
+		--sidebar-primary: 90 61% 65%;
+		--sidebar-primary-foreground: 120 100% 12%;
+		--sidebar-accent: 90 20% 88%;
+		--sidebar-accent-foreground: 120 60% 15%;
+		--sidebar-border: 90 15% 85%;
+		--sidebar-ring: 90 61% 60%;
+	}
+
+	.dark {
+		--background: 120 100% 1%;
+		--foreground: 204 49% 80%;
+		--muted: 204 25% 25%;
+		--muted-foreground: 204 30% 65%;
+		--popover: 120 80% 3%;
+		--popover-foreground: 204 49% 80%;
+		--card: 120 70% 4%;
+		--card-foreground: 204 49% 80%;
+		--border: 204 25% 25%;
+		--input: 204 25% 25%;
+		--primary: 90 61% 77%;
+		--primary-foreground: 120 100% 5%;
+		--secondary: 204 30% 25%;
+		--secondary-foreground: 204 49% 85%;
+		--accent: 90 40% 30%;
+		--accent-foreground: 204 49% 85%;
+		--destructive: 0 63% 45%;
+		--destructive-foreground: 0 0% 100%;
+		--ring: 90 61% 77%;
+		--sidebar-background: 120 90% 5%;
+		--sidebar-foreground: 204 49% 80%;
+		--sidebar-primary: 90 61% 77%;
+		--sidebar-primary-foreground: 120 100% 5%;
+		--sidebar-accent: 90 30% 18%;
+		--sidebar-accent-foreground: 204 49% 80%;
+		--sidebar-border: 90 30% 18%;
+		--sidebar-ring: 90 61% 70%;
+	}
+}
+@layer base {
+	* {
+		@apply border-primary;
+	}
+	body {
+		@apply bg-background text-foreground;
+	}
+}

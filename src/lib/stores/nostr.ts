@@ -10,10 +10,11 @@ class NostrService {
 	private constructor() {
 		this.ndk = new NDK({
 			explicitRelayUrls: [
-				// "wss://relay.nostr.net",
+				'wss://relay.nostr.net',
 				// "wss://relay.damus.io",
 				// "wss://relay.primal.net",
-				'wss://relay.dvmcp.fun'
+				'wss://relay.dvmcp.fun',
+				'wss://relay.nostrdvm.com'
 			]
 		});
 	}

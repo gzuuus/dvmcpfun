@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createToolsQuery } from '$lib/queries/tools';
-	import ToolCard from '../components/ToolCard.svelte';
+	import DvmcpCard from '../components/dvmcpCard.svelte';
 
 	const toolsQuery = createToolsQuery();
 	let searchQuery = '';
@@ -49,7 +49,7 @@
 		{:else}
 			<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
 				{#each filteredTools as tool (tool.eventId)}
-					<ToolCard {tool} />
+					<DvmcpCard {tool} />
 				{/each}
 			</div>
 		{/if}

@@ -2,8 +2,8 @@
 	import { createForm3, RawForm } from '@sjsf/form';
 	import { translation } from '@sjsf/form/translations/en';
 	import { theme } from '@sjsf/shadcn-theme';
-	import { validator } from '../routes/mcp/[id]/_validator';
-	import { onSubmit } from '../routes/mcp/[id]/_on-submit';
+	import { validator } from '../routes/s/[id]/_validator';
+	import { onSubmit } from '../routes/s/[id]/_on-submit';
 	import type { UiSchemaRoot } from '@sjsf/form';
 	import { onDestroy } from 'svelte';
 	import { toolExecutor } from '$lib/services/toolExecutor';

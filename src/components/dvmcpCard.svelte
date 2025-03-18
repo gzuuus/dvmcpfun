@@ -13,7 +13,7 @@
 </script>
 
 <a
-	href="/mcp/{tool.eventId}"
+	href="/s/{tool.eventId}"
 	class="group rounded-lg border border-primary/20 bg-background p-6 transition-colors hover:border-primary/50"
 >
 	<div class="space-y-1">

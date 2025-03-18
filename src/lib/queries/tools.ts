@@ -102,7 +102,7 @@ export const createToolsQuery = () => {
 	});
 };
 
-export const createToolQuery = (id: string) => {
+export const createDvmcpQuery = (id: string) => {
 	return createQuery({
 		queryKey: toolKeys.details(id),
 		queryFn: () => fetchToolById(id),

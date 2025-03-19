@@ -9,6 +9,7 @@
 	import { onSubmit } from '../../routes/s/[id]/_on-submit';
 	import type { ExtendedDVMCP } from '$lib/types';
 	import type { Tool } from '@modelcontextprotocol/sdk/types.js';
+	import * as Tabs from '$lib/components/ui/tabs/index.js';
 
 	export let provider: ExtendedDVMCP;
 	export let tool: Tool;
@@ -45,7 +46,6 @@
 </script>
 
 <div class="space-y-4">
-	<h3 class="text-lg font-medium text-primary">{tool.name}</h3>
 	{#key tool.inputSchema}
 		{@const createdForm = createForm3({
 			...theme,
@@ -83,21 +83,41 @@
 	{#if $executionStore.status === 'success'}
 		<div class="mt-4 rounded-lg border border-primary bg-background p-4">
 			<div class="mb-2 flex items-center justify-between">
-				<span class="text-sm text-primary/50">Tool Result</span>
-				<button
-					class="text-sm text-primary hover:text-primary/80"
-					on:click={() => {
-						navigator.clipboard.writeText(JSON.stringify($executionStore.result, null, 2));
-					}}
-				>
-					Copy
-				</button>
+				<Tabs.Root value="result">
+					<Tabs.List>
+						<Tabs.Trigger value="result">Tool Result</Tabs.Trigger>
+						<Tabs.Trigger value="raw">Raw</Tabs.Trigger>
+					</Tabs.List>
+					<Tabs.Content value="result">
+						<button
+							class="text-sm text-primary hover:text-primary/80"
+							on:click={() => {
+								navigator.clipboard.writeText($executionStore.result[0].text);
+							}}
+						>
+							Copy
+						</button>
+						{#each $executionStore.result as result}
+							<p class=" text-xl font-bold">{result.text}</p>
+						{/each}
+					</Tabs.Content>
+					<Tabs.Content value="raw">
+						<button
+							class="text-sm text-primary hover:text-primary/80"
+							on:click={() => {
+								navigator.clipboard.writeText(JSON.stringify($executionStore.result, null, 2));
+							}}
+						>
+							Copy
+						</button>
+						<pre class="overflow-auto font-mono text-sm text-primary/50">{JSON.stringify(
+								$executionStore.result,
+								null,
+								2
+							)}</pre>
+					</Tabs.Content>
+				</Tabs.Root>
 			</div>
-			<pre class="overflow-auto font-mono text-sm text-primary/50">{JSON.stringify(
-					$executionStore.result,
-					null,
-					2
-				)}</pre>
 		</div>
 	{:else if $executionStore.status === 'error'}
 		<div class="mt-4 rounded-lg border border-red-500/30 bg-red-900/20 p-4">

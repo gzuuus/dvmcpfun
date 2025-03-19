@@ -5,7 +5,7 @@ import { toolKeys } from './queryKeyFactory';
 import { createQuery } from '@tanstack/svelte-query';
 import { parseDVMCP } from '$lib/utils/tools';
 
-export const fetchTools = async () => {
+export const fetchDVMCPs = async () => {
 	if (!nostrService.isConnected) {
 		await nostrService.connect();
 	}
@@ -16,14 +16,13 @@ export const fetchTools = async () => {
 	};
 
 	const events = await nostrService.ndkInstance.fetchEvents(filter);
-	const tools = (await Promise.all(Array.from(events).map(parseDVMCP))).filter(
-		(tool) => tool !== null
+	const dvmcp = (await Promise.all(Array.from(events).map(parseDVMCP))).filter(
+		(dvmcp) => dvmcp !== null
 	);
-	return tools;
+	return dvmcp;
 };
 
 export const fetchToolById = async (id: string) => {
-	// Wait for connection if not already connected
 	if (!nostrService.isConnected) {
 		await nostrService.connect();
 	}
@@ -39,7 +38,7 @@ export const fetchToolById = async (id: string) => {
 export const createDVMCPsQuery = () => {
 	return createQuery({
 		queryKey: toolKeys.all,
-		queryFn: fetchTools
+		queryFn: fetchDVMCPs
 	});
 };
 

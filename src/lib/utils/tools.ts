@@ -11,6 +11,9 @@ export const parseDVMCP = async (event: NDKEvent): Promise<ExtendedDVMCP | null>
 		const toolNames = event.tags.filter((tag) => tag[0] == 't').map((tag) => tag[1]);
 		return {
 			name: parsedContent?.name,
+			picture: parsedContent.picture,
+			website: parsedContent.website,
+			banner: parsedContent.banner,
 			about: parsedContent?.about,
 			tools: parsedContent?.tools,
 			event: nostrEvent,

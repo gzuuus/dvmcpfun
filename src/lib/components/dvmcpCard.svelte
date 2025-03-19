@@ -16,11 +16,9 @@
 >
 	<div class="space-y-1">
 		<div class="flex items-center gap-3">
-			{#if $authorQuery.isLoading}
-				<div class="h-8 w-8 animate-pulse rounded-lg border border-primary/20 bg-border/10"></div>
-			{:else if $authorQuery.data?.picture}
+			{#if dvmcp.picture}
 				<img
-					src={$authorQuery.data.picture}
+					src={dvmcp.picture}
 					alt=""
 					class="h-8 w-8 rounded-lg border border-primary/20 object-cover"
 				/>
@@ -44,22 +42,15 @@
 		{#if dvmcp.about}
 			<p class="mt-2 line-clamp-2 text-primary/50">{dvmcp.about}</p>
 		{/if}
-
-		<p class="mt-4 line-clamp-2 text-primary/50">{dvmcp.about}</p>
-
-		{#if dvmcp.capabilities && dvmcp.capabilities.length > 0}
-			{#each dvmcp.capabilities as capability}
-				<span class="w-fit rounded-full bg-border/20 px-3 py-1 text-sm text-primary/50">
-					{capability}
-				</span>
-			{/each}
+		{#if dvmcp.website}
+			<p class="mt-2 line-clamp-2 text-primary/50">{dvmcp.website}</p>
 		{/if}
 	</div>
 	<div class="mt-4 flex flex-wrap gap-2">
 		{#if dvmcp.toolNames && dvmcp.toolNames.length > 0}
 			{#each dvmcp.toolNames as toolName}
 				<span
-					class="overflow-hidden overflow-ellipsis whitespace-nowrap rounded-full bg-border/20 px-3 py-1 text-sm text-primary/50"
+					class="overflow-hidden overflow-ellipsis whitespace-nowrap rounded-full bg-border/20 px-3 py-1 text-sm text-primary"
 				>
 					{toolName}
 				</span>

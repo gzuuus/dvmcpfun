@@ -4,6 +4,9 @@ import type { NostrEvent } from '@nostr-dev-kit/ndk';
 export interface DVMCPContent {
 	name: string;
 	about: string;
+	picture?: string;
+	website?: string;
+	banner?: string;
 	tools: Tool[];
 }
 

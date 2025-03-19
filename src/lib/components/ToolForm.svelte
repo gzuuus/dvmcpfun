@@ -2,15 +2,17 @@
 	import { createForm3, RawForm } from '@sjsf/form';
 	import { translation } from '@sjsf/form/translations/en';
 	import { theme } from '@sjsf/shadcn-theme';
-	import { validator } from '../routes/s/[id]/_validator';
-	import { onSubmit } from '../routes/s/[id]/_on-submit';
-	import type { UiSchemaRoot } from '@sjsf/form';
+	import type { FormOptions, UiSchemaRoot } from '@sjsf/form';
 	import { onDestroy } from 'svelte';
 	import { toolExecutor } from '$lib/services/toolExecutor';
-	import type { McpTool } from '$lib/queries/tools';
+	import { validator } from '../../routes/dvm/[id]/_validator';
+	import { onSubmit } from '../../routes/dvm/[id]/_on-submit';
+	import type { ExtendedDVMCP } from '$lib/types';
+	import type { Tool } from '@modelcontextprotocol/sdk/types.js';
+	import * as Tabs from '$lib/components/ui/tabs/index.js';
 
-	export let provider: McpTool;
-	export let tool: { name: string; inputSchema: any };
+	export let provider: ExtendedDVMCP;
+	export let tool: Tool;
 
 	let uiSchema: UiSchemaRoot = {
 		submitButton: {
@@ -44,16 +46,15 @@
 </script>
 
 <div class="space-y-4">
-	<h3 class="text-lg font-medium text-primary">{tool.name}</h3>
 	{#key tool.inputSchema}
 		{@const createdForm = createForm3({
 			...theme,
 			initialValue,
-			schema: tool.inputSchema,
+			schema: tool.inputSchema as FormOptions<string, string>['schema'],
 			uiSchema,
 			validator,
 			translation,
-			onSubmit: (value) => onSubmit(value, tool, provider.author)
+			onSubmit: (value) => onSubmit(value, tool, provider.event.pubkey)
 		})}
 		{#if createdForm}
 			<div class="space-y-4">
@@ -82,21 +83,41 @@
 	{#if $executionStore.status === 'success'}
 		<div class="mt-4 rounded-lg border border-primary bg-background p-4">
 			<div class="mb-2 flex items-center justify-between">
-				<span class="text-sm text-primary/50">Tool Result</span>
-				<button
-					class="text-sm text-primary hover:text-primary/80"
-					on:click={() => {
-						navigator.clipboard.writeText(JSON.stringify($executionStore.result, null, 2));
-					}}
-				>
-					Copy
-				</button>
+				<Tabs.Root value="result">
+					<Tabs.List>
+						<Tabs.Trigger value="result">Tool Result</Tabs.Trigger>
+						<Tabs.Trigger value="raw">Raw</Tabs.Trigger>
+					</Tabs.List>
+					<Tabs.Content value="result">
+						<button
+							class="text-sm text-primary hover:text-primary/80"
+							on:click={() => {
+								navigator.clipboard.writeText($executionStore.result[0].text);
+							}}
+						>
+							Copy
+						</button>
+						{#each $executionStore.result as result}
+							<p class=" text-xl font-bold">{result.text}</p>
+						{/each}
+					</Tabs.Content>
+					<Tabs.Content value="raw">
+						<button
+							class="text-sm text-primary hover:text-primary/80"
+							on:click={() => {
+								navigator.clipboard.writeText(JSON.stringify($executionStore.result, null, 2));
+							}}
+						>
+							Copy
+						</button>
+						<pre class="overflow-auto font-mono text-sm text-primary/50">{JSON.stringify(
+								$executionStore.result,
+								null,
+								2
+							)}</pre>
+					</Tabs.Content>
+				</Tabs.Root>
 			</div>
-			<pre class="overflow-auto font-mono text-sm text-primary/50">{JSON.stringify(
-					$executionStore.result,
-					null,
-					2
-				)}</pre>
 		</div>
 	{:else if $executionStore.status === 'error'}
 		<div class="mt-4 rounded-lg border border-red-500/30 bg-red-900/20 p-4">

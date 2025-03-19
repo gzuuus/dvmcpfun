@@ -13,7 +13,7 @@
 <AccordionPrimitive.Content
 	bind:ref
 	class={cn(
-		'overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down',
+		'overflow-hidden p-3 text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down',
 		className
 	)}
 	{...restProps}

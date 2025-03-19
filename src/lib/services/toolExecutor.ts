@@ -1,10 +1,10 @@
-import { NDKEvent, type NDKFilter, type NDKSubscription } from '@nostr-dev-kit/ndk';
+import { NDKEvent, type NDKSubscription } from '@nostr-dev-kit/ndk';
 import { NDKPrivateKeySigner } from '@nostr-dev-kit/ndk';
 import { generateSecretKey } from 'nostr-tools';
 import { writable, type Writable } from 'svelte/store';
-import type { Tool } from '../types';
 import { DVM_NOTICE_KIND, TOOL_REQUEST_KIND, TOOL_RESPONSE_KIND } from '$lib/constants';
 import { nostrService } from '$lib/stores/nostr';
+import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 
 export type ExecutionStatus = 'idle' | 'loading' | 'success' | 'error';
 

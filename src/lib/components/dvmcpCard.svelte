@@ -11,7 +11,7 @@
 </script>
 
 <a
-	href="/s/{dvmcp.event.id}"
+	href="/dvm/{dvmcp.event.id}"
 	class="group rounded-lg border border-primary/20 bg-background p-6 transition-colors hover:border-primary/50"
 >
 	<div class="space-y-1">

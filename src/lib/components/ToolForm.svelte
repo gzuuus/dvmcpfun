@@ -5,8 +5,8 @@
 	import type { FormOptions, UiSchemaRoot } from '@sjsf/form';
 	import { onDestroy } from 'svelte';
 	import { toolExecutor } from '$lib/services/toolExecutor';
-	import { validator } from '../../routes/s/[id]/_validator';
-	import { onSubmit } from '../../routes/s/[id]/_on-submit';
+	import { validator } from '../../routes/dvm/[id]/_validator';
+	import { onSubmit } from '../../routes/dvm/[id]/_on-submit';
 	import type { ExtendedDVMCP } from '$lib/types';
 	import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';

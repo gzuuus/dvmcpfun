@@ -1,8 +1,6 @@
 <script lang="ts">
 	import '../app.css';
 	import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query';
-	import { onMount } from 'svelte';
-	import { nostrService } from '$lib/stores/nostr';
 	import Header from '$lib/components/Header.svelte';
 	import { ModeWatcher } from 'mode-watcher';
 
@@ -15,10 +13,6 @@
 				refetchOnWindowFocus: false
 			}
 		}
-	});
-
-	onMount(() => {
-		nostrService.connect();
 	});
 </script>
 

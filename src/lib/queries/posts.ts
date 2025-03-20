@@ -1,8 +1,9 @@
 import { NDKEvent } from '@nostr-dev-kit/ndk';
 import type { NDKFilter } from '@nostr-dev-kit/ndk';
-import { nostrService } from '$lib/stores/nostr';
 import { postKeys } from './queryKeyFactory';
 import { createQuery } from '@tanstack/svelte-query';
+import ndkStore from '$lib/stores/nostr';
+import { get } from 'svelte/store';
 
 export type NostrPost = {
 	id: string;
@@ -19,17 +20,12 @@ const transformEvent = (event: NDKEvent): NostrPost => ({
 });
 
 export const fetchPosts = async () => {
-	// Wait for connection if not already connected
-	if (!nostrService.isConnected) {
-		await nostrService.connect();
-	}
-
 	const filter: NDKFilter = {
 		kinds: [1], // kind 1 is text notes
 		limit: 20
 	};
 
-	const events = await nostrService.ndkInstance.fetchEvents(filter);
+	const events = await get(ndkStore).fetchEvents(filter);
 	const posts = Array.from(events).map(transformEvent);
 
 	// Sort by newest first
@@ -37,12 +33,7 @@ export const fetchPosts = async () => {
 };
 
 export const fetchPost = async (id: string) => {
-	// Wait for connection if not already connected
-	if (!nostrService.isConnected) {
-		await nostrService.connect();
-	}
-
-	const event = await nostrService.ndkInstance.fetchEvent(id);
+	const event = await get(ndkStore).fetchEvent(id);
 	if (!event) {
 		throw new Error('Post not found');
 	}

@@ -23,7 +23,7 @@ jobs:
           username: ${{ secrets.REMOTE_USER }}
           password: ${{ secrets.REMOTE_PASSWORD }}
           script: |
-            mkdir -p /test
-            cd /test
+            mkdir -p ~/test
+            cd ~/test
             rm -rf *
             rsync -avz --delete --progress /tmp/_github/workspace/* .

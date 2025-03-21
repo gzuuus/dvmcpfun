@@ -21,6 +21,11 @@ const config = {
 		routes: {
 			include: ['/*'],
 			exclude: ['<all>']
+		},
+		platformProxy: {
+			configPath: undefined,
+			environment: undefined,
+			persist: undefined
 		}
 	})
 };

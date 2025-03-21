@@ -16,7 +16,6 @@
 	"devDependencies": {
 		"@lucide/svelte": "^0.483.0",
 		"@sveltejs/adapter-auto": "^4.0.0",
-		"@sveltejs/adapter-cloudflare": "^6.0.0",
 		"@sveltejs/kit": "^2.16.0",
 		"@sveltejs/vite-plugin-svelte": "^5.0.0",
 		"autoprefixer": "^10.4.20",

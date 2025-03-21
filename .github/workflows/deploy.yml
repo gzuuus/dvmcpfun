@@ -3,7 +3,7 @@ name: Build and Deploy Bun Project
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   deploy:

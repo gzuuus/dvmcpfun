@@ -23,12 +23,3 @@ jobs:
           source: './*'
           target: '~/dvmcpfun'
           rm: true
-      - name: Restart service
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.REMOTE_HOST }}
-          username: ${{ secrets.REMOTE_USER }}
-          password: ${{ secrets.REMOTE_PASSWORD }}
-          script: |
-            echo "${{ secrets.REMOTE_USER_PASSWORD }}" | sudo -S systemctl restart dvmcpfun.service
-            echo "${{ secrets.REMOTE_USER_PASSWORD }}" | sudo -S systemctl status dvmcpfun.service --no-pager

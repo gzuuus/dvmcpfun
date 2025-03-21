@@ -30,7 +30,5 @@ jobs:
           username: ${{ secrets.REMOTE_USER }}
           password: ${{ secrets.REMOTE_PASSWORD }}
           script: |
-            # Restart the service
-            sudo /bin/systemctl restart dvmcpfun.service
-            # Check service status
-            sudo /bin/systemctl status dvmcpfun.service --no-pager
+            echo "${{ secrets.REMOTE_PASSWORD }}" | sudo -S systemctl restart dvmcpfun.service
+            echo "${{ secrets.REMOTE_PASSWORD }}" | sudo -S systemctl status dvmcpfun.service --no-pager

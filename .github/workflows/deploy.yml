@@ -16,6 +16,7 @@ jobs:
           bun-version: latest
       - run: bun install
       - run: bun run build
+
       - name: Deploy to VPS
         uses: appleboy/scp-action@master
         with:
@@ -23,5 +24,22 @@ jobs:
           username: ${{ secrets.REMOTE_USER }}
           password: ${{ secrets.REMOTE_PASSWORD }}
           source: './*'
-          target: '~/test'
+          target: '~/dvmcpfun'
           rm: true
+
+      - name: Restart service
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          password: ${{ secrets.REMOTE_PASSWORD }}
+          script: |
+            # Install dependencies if needed
+            cd ~/dvmcpfun
+            bun install --production
+
+            # Restart the service (assuming it's named bunapp.service)
+            sudo systemctl restart dvmcpfun.service
+
+            # Check service status
+            sudo systemctl status dvmcpfun.service --no-pager

@@ -39,11 +39,6 @@ export const loginWithExtension = async (): Promise<boolean> => {
 			throw new Error('Signer setup failed');
 		}
 
-		const user = await ndk.signer.user();
-		await user.fetchProfile();
-
-		ndkStore.set(ndk);
-
 		return true;
 	} catch (e) {
 		console.error('Login with extension failed:', e);
@@ -56,12 +51,11 @@ export const setupNDKSigner = async (
 ) => {
 	await signer.blockUntilReady();
 	ndk.signer = signer;
+	const user = await ndk.signer.user();
+	await user.fetchProfile();
 	ndkStore.set(ndk);
 };
 
 export const logout = (): void => {
-	ndk.signer = undefined;
-	ndkStore.set(ndk);
-	localStorage.removeItem('auto_login');
-	localStorage.removeItem('login_method');
+	location.replace('/');
 };

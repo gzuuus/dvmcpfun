@@ -1,13 +1,17 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
-	import { login, type BaseAccount } from '$lib/stores/login';
+	import { login, logout, type BaseAccount } from '$lib/stores/login';
 	import ndkStore from '$lib/stores/nostr';
+	import { getHexColorFingerprintFromHexPubkey } from '$lib/utils/commons';
 	import { Moon, Sun, User } from 'lucide-svelte';
 	import { toggleMode } from 'mode-watcher';
 
 	const loginWrapper = (method: BaseAccount['type']) => {
 		if ((method = 'NIP07') && !$ndkStore.activeUser) {
 			return login(method);
+		} else {
+			console.log('login out');
+			logout();
 		}
 		return;
 	};
@@ -29,13 +33,27 @@
 			>
 				Build your own
 			</a>
-			<Button onclick={() => loginWrapper('NIP07')} variant="outline" size="icon">
+			<Button
+				onclick={() => loginWrapper('NIP07')}
+				variant="outline"
+				size="icon"
+				style={$ndkStore.activeUser?.pubkey
+					? `background: ${getHexColorFingerprintFromHexPubkey($ndkStore.activeUser?.pubkey)} ;`
+					: ''}
+			>
 				{#if $ndkStore.activeUser?.profile}
-					<img
-						src={$ndkStore.activeUser?.profile.picture}
-						alt=""
-						class="h-8 w-8 rounded-lg border border-primary/20 object-cover"
-					/>
+					{#if $ndkStore.activeUser?.profile.picture}
+						<img
+							src={$ndkStore.activeUser?.profile.picture}
+							alt=""
+							class="h-8 w-8 rounded-lg border border-primary/20 object-cover"
+						/>
+					{:else}
+						<User
+							class="absolute h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:rotate-0 dark:scale-100"
+							style={`background: ${getHexColorFingerprintFromHexPubkey($ndkStore.activeUser?.pubkey)} ;`}
+						/>
+					{/if}
 				{:else}
 					<User
 						class="absolute h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:rotate-0 dark:scale-100"

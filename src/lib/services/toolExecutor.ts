@@ -1,10 +1,11 @@
 import { NDKEvent, type NDKSubscription } from '@nostr-dev-kit/ndk';
 import { NDKPrivateKeySigner } from '@nostr-dev-kit/ndk';
 import { generateSecretKey } from 'nostr-tools';
-import { writable, type Writable } from 'svelte/store';
+import { get, writable, type Writable } from 'svelte/store';
 import { DVM_NOTICE_KIND, TOOL_REQUEST_KIND, TOOL_RESPONSE_KIND } from '$lib/constants';
-import { nostrService } from '$lib/stores/nostr';
+import ndkStore from '$lib/stores/nostr';
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
+import { setupNDKSigner } from '$lib/stores/login';
 
 export type ExecutionStatus = 'idle' | 'loading' | 'success' | 'error';
 
@@ -20,7 +21,7 @@ export class ToolExecutor {
 	private executionStates = new Map<string, Writable<ToolExecutionState>>();
 	private static readonly EXECUTION_TIMEOUT = 60 * 1000 * 5;
 
-	constructor(private ndkInstance: any) {}
+	constructor() {}
 
 	public getExecutionStore(toolName: string): Writable<ToolExecutionState> {
 		if (!this.executionStates.has(toolName)) {
@@ -86,7 +87,7 @@ export class ToolExecutor {
 				}, ToolExecutor.EXECUTION_TIMEOUT);
 
 				// Set up subscription to listen for the response
-				const subscription = this.ndkInstance.subscribe(
+				const subscription = get(ndkStore).subscribe(
 					[
 						{
 							kinds: [TOOL_RESPONSE_KIND, DVM_NOTICE_KIND],
@@ -147,7 +148,7 @@ export class ToolExecutor {
 		params: unknown,
 		provider: string
 	): Promise<NDKEvent> {
-		const request = new NDKEvent(this.ndkInstance);
+		const request = new NDKEvent(get(ndkStore));
 
 		request.kind = TOOL_REQUEST_KIND;
 
@@ -164,8 +165,8 @@ export class ToolExecutor {
 		request.tags.push(['c', 'execute-tool']);
 		request.tags.push(['p', provider]);
 		// Sign the event
-		if (!this.ndkInstance.signer) {
-			this.ndkInstance.signer = new NDKPrivateKeySigner(generateSecretKey());
+		if (!get(ndkStore).signer) {
+			await setupNDKSigner(new NDKPrivateKeySigner(generateSecretKey()));
 		}
 		await request.sign();
 
@@ -173,4 +174,4 @@ export class ToolExecutor {
 	}
 }
 
-export const toolExecutor = new ToolExecutor(nostrService.ndkInstance);
+export const toolExecutor = new ToolExecutor();

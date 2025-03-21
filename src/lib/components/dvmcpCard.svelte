@@ -30,10 +30,10 @@
 			</h3>
 		</div>
 		<p class="text-sm text-primary/60">
-			{#if $authorQuery.isLoading}
+			{#if $authorQuery?.isLoading}
 				<span class="animate-pulse">Loading author...</span>
 			{:else}
-				by {$authorQuery.data?.name || truncatePubkey(dvmcp.event.pubkey)}
+				by {$authorQuery?.data?.name || truncatePubkey(dvmcp.event.pubkey)}
 			{/if}
 		</p>
 	</div>

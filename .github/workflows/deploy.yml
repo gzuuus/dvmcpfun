@@ -17,13 +17,11 @@ jobs:
       - run: bun install
       - run: bun run build
       - name: Deploy to VPS
-        uses: appleboy/ssh-action@master
+        uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           password: ${{ secrets.REMOTE_PASSWORD }}
-          script: |
-            mkdir -p ~/test
-            cd ~/test
-            rm -rf *
-            rsync -avz --delete --progress /tmp/_github/workspace/* .
+          source: './*'
+          target: '~/test'
+          rm: true

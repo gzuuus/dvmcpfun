@@ -1,7 +1,7 @@
 import NDK from '@nostr-dev-kit/ndk';
 import { writable } from 'svelte/store';
 
-const explicitRelayUrls = [
+export const explicitRelayUrls = [
 	// 'wss://relay.nostr.net',
 	// 'wss://relay.damus.io',
 	'wss://purplepag.es',

@@ -29,13 +29,20 @@
 			<WordRotate class=" font-thin text-black dark:text-white" words={phrases} duration={3250} />
 		</div>
 	</div>
-	<div class="mb-6">
+	<div class="mb-6 flex gap-2">
 		<input
 			type="text"
 			placeholder="Search tools..."
 			bind:value={searchQuery}
-			class="w-full rounded-lg border border-primary/20 bg-background px-4 py-2 text-primary/50 placeholder-primary/40 focus:border-primary/50 focus:outline-none"
+			class="flex-1 rounded-lg border border-primary/20 bg-background px-4 py-2 text-primary/50 placeholder-primary/40 focus:border-primary/50 focus:outline-none"
 		/>
+		<!-- <button
+			on:click={() => $dvmcpQuery.refetch()}
+			class="flex items-center justify-center rounded-lg border border-primary/20 bg-background px-3 hover:bg-primary/5 active:bg-primary/10"
+			title="Refresh DVMCPs"
+		>
+			<RefreshCw class="h-5 w-5 text-primary/50" />
+		</button> -->
 	</div>
 	{#if $dvmcpQuery.isLoading}
 		<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">

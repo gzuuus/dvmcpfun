@@ -9,9 +9,16 @@
 
 	const dvmcpQuery = createDVMCPQuery($page.params.id);
 
-	// Set up shadcn theme
 	setThemeContext({ components });
+
+	$: pageTitle = $dvmcpQuery.data
+		? `${$dvmcpQuery.data.name.length > 12 ? $dvmcpQuery.data.name.slice(0, 12) + '...' : $dvmcpQuery.data.name} | DVMCP Fun`
+		: 'Loading... | DVMCP Fun';
 </script>
+
+<svelte:head>
+	<title>{pageTitle}</title>
+</svelte:head>
 
 <main class="mx-auto max-w-7xl px-6 py-8">
 	<a

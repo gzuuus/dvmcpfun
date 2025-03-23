@@ -3,6 +3,8 @@
 	import DvmcpCard from '$lib/components/dvmcpCard.svelte';
 	import WordRotate from '$lib/components/wordRotate.svelte';
 
+	const pageTitle = 'Home | DVMCP Fun';
+
 	const dvmcpQuery = createDVMCPsQuery();
 	let searchQuery = '';
 
@@ -14,6 +16,10 @@
 
 	let phrases = ['is fun', 'is for everyone', 'is open source', 'is decentralized computing'];
 </script>
+
+<svelte:head>
+	<title>{pageTitle}</title>
+</svelte:head>
 
 <!-- Main Content -->
 <main class="mx-auto max-w-7xl px-6 py-8">

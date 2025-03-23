@@ -6,6 +6,7 @@
 	import { Toaster } from '$lib/components/ui/sonner/index.js';
 
 	let { children } = $props();
+	const siteTitle = 'DVMCP Fun';
 
 	const queryClient = new QueryClient({
 		defaultOptions: {
@@ -16,6 +17,10 @@
 		}
 	});
 </script>
+
+<svelte:head>
+	<title>{siteTitle}</title>
+</svelte:head>
 
 <ModeWatcher />
 <Toaster />

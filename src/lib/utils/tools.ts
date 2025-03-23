@@ -1,6 +1,7 @@
 import type { NDKEvent } from '@nostr-dev-kit/ndk';
 import { parseAnnouncementContent } from './commons';
 import type { ExtendedDVMCP } from '$lib/types';
+import type { JSONSchema7 } from 'json-schema';
 
 export const parseDVMCP = async (event: NDKEvent): Promise<ExtendedDVMCP | null> => {
 	try {
@@ -25,3 +26,29 @@ export const parseDVMCP = async (event: NDKEvent): Promise<ExtendedDVMCP | null>
 		return null;
 	}
 };
+
+export function filterOptionalParameters(
+	params: Record<string, unknown> | undefined,
+	schema: JSONSchema7
+): Record<string, unknown> {
+	const requiredParams = (schema.required || []) as string[];
+
+	return Object.entries(params || {}).reduce(
+		(acc, [key, value]) => {
+			if (requiredParams.includes(key)) {
+				acc[key] = value;
+				return acc;
+			}
+
+			if (Array.isArray(value)) {
+				if (value.length > 0) {
+					acc[key] = value;
+				}
+			} else if (value !== undefined && value !== null && value !== '') {
+				acc[key] = value;
+			}
+			return acc;
+		},
+		{} as Record<string, unknown>
+	);
+}

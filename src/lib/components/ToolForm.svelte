@@ -10,6 +10,8 @@
 	import type { ExtendedDVMCP } from '$lib/types';
 	import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
+	import type { JSONSchema7 } from 'json-schema';
+	import { filterOptionalParameters } from '$lib/utils/tools';
 
 	export let provider: ExtendedDVMCP;
 	export let tool: Tool;
@@ -34,11 +36,13 @@
 
 	const executionStore = toolExecutor.getExecutionStore(tool.name);
 
-	$: formattedOutput = (formValue: any) =>
-		JSON.stringify({
+	$: formattedOutput = (formValue: Record<string, unknown> | undefined) => {
+		const filteredParams = filterOptionalParameters(formValue, tool.inputSchema as JSONSchema7);
+		return JSON.stringify({
 			name: tool.name,
-			parameters: formValue || {}
+			parameters: filteredParams
 		});
+	};
 
 	onDestroy(() => {
 		toolExecutor.resetExecutionState(tool.name);
@@ -89,17 +93,23 @@
 						<Tabs.Trigger value="raw">Raw</Tabs.Trigger>
 					</Tabs.List>
 					<Tabs.Content value="result">
-						<button
-							class="text-sm text-primary hover:text-primary/80"
-							on:click={() => {
-								navigator.clipboard.writeText($executionStore.result[0].text);
-							}}
-						>
-							Copy
-						</button>
-						{#each $executionStore.result as result}
-							<p class=" text-xl font-bold">{result.text}</p>
-						{/each}
+						<div class="space-y-2">
+							<button
+								class="text-sm text-primary hover:text-primary/80"
+								on:click={() => {
+									navigator.clipboard.writeText($executionStore.result[0].text);
+								}}
+							>
+								Copy
+							</button>
+							<div class="max-h-[800px] overflow-auto">
+								<div class="w-full min-w-0">
+									{#each $executionStore.result as result}
+										<p class="whitespace-pre-wrap break-all text-xl font-bold">{result.text}</p>
+									{/each}
+								</div>
+							</div>
+						</div>
 					</Tabs.Content>
 					<Tabs.Content value="raw">
 						<button

@@ -6,6 +6,8 @@ import { DVM_NOTICE_KIND, TOOL_REQUEST_KIND, TOOL_RESPONSE_KIND } from '$lib/con
 import ndkStore from '$lib/stores/nostr';
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { setupNDKSigner } from '$lib/stores/login';
+import { filterOptionalParameters } from '$lib/utils/tools';
+import type { JSONSchema7 } from 'json-schema';
 
 export type ExecutionStatus = 'idle' | 'loading' | 'success' | 'error';
 
@@ -39,7 +41,11 @@ export class ToolExecutor {
 		return this.executionStates.get(toolName)!;
 	}
 
-	public async executeTool(tool: Tool, params: unknown, providerPk: string): Promise<unknown> {
+	public async executeTool(
+		tool: Tool,
+		params: Record<string, unknown>,
+		providerPk: string
+	): Promise<unknown> {
 		const executionStore = this.getExecutionStore(tool.name);
 
 		executionStore.update((state) => ({ ...state, status: 'loading', result: null, error: null }));
@@ -72,7 +78,7 @@ export class ToolExecutor {
 
 	private async executeToolInternal(
 		tool: Tool,
-		params: unknown,
+		params: Record<string, unknown>,
 		providerPk: string
 	): Promise<unknown> {
 		return new Promise(async (resolve, reject) => {
@@ -80,13 +86,11 @@ export class ToolExecutor {
 				const requestEvent = await this.createToolRequest(tool, params, providerPk);
 				const executionId = requestEvent.id;
 
-				// Set up timeout
 				const timeoutId = setTimeout(() => {
 					reject(new Error(`Tool execution timed out after ${ToolExecutor.EXECUTION_TIMEOUT}ms`));
 					this.cleanupExecution(executionId);
 				}, ToolExecutor.EXECUTION_TIMEOUT);
 
-				// Set up subscription to listen for the response
 				const subscription = get(ndkStore).subscribe(
 					[
 						{
@@ -98,7 +102,7 @@ export class ToolExecutor {
 					{ closeOnEose: false }
 				);
 
-				subscription.on('event', (event: NDKEvent) => {
+				subscription.on('event', async (event: NDKEvent) => {
 					if (event.kind === TOOL_RESPONSE_KIND) {
 						try {
 							const result = JSON.parse(event.content);
@@ -145,21 +149,17 @@ export class ToolExecutor {
 
 	private async createToolRequest(
 		tool: Tool,
-		params: unknown,
+		params: Record<string, unknown>,
 		provider: string
 	): Promise<NDKEvent> {
 		const request = new NDKEvent(get(ndkStore));
-
 		request.kind = TOOL_REQUEST_KIND;
 
-		const parameters =
-			!tool.inputSchema.properties || Object.keys(tool.inputSchema.properties).length === 0
-				? {}
-				: params;
-
+		// Filter parameters and create request content
+		const filteredParams = filterOptionalParameters(params, tool.inputSchema as JSONSchema7);
 		request.content = JSON.stringify({
 			name: tool.name,
-			parameters
+			parameters: filteredParams
 		});
 
 		request.tags.push(['c', 'execute-tool']);

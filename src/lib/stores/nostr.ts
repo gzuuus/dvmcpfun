@@ -4,7 +4,7 @@ import { writable } from 'svelte/store';
 export const explicitRelayUrls = [
 	// 'wss://relay.nostr.net',
 	// 'wss://relay.damus.io',
-	'wss://purplepag.es',
+	// 'wss://purplepag.es',
 	'wss://relay.dvmcp.fun'
 	// 'wss://relay.nostrdvm.com'
 	// 'ws://localhost:10547'

@@ -6,6 +6,10 @@
 	import * as Accordion from '$lib/components/ui/accordion/index.js';
 	import { createDVMCPQuery } from '$lib/queries/tools';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
+	import { nip19 } from 'nostr-tools';
+	import { appRelay, explicitRelayUrls } from '$lib/stores/nostr';
+	import type { NDKTag, NostrEvent } from '@nostr-dev-kit/ndk';
+	import { copyToClipboard } from '$lib/utils';
 
 	const dvmcpQuery = createDVMCPQuery($page.params.id);
 
@@ -14,6 +18,32 @@
 	$: pageTitle = $dvmcpQuery.data
 		? `${$dvmcpQuery.data.name.length > 12 ? $dvmcpQuery.data.name.slice(0, 12) + '...' : $dvmcpQuery.data.name} | DVMCP Fun`
 		: 'Loading... | DVMCP Fun';
+
+	$: nprofileString = $dvmcpQuery.data ? generateNprofile($dvmcpQuery.data.event) : '';
+	$: naddrString = $dvmcpQuery.data ? generateNaddr($dvmcpQuery.data.event) : '';
+
+	function generateNprofile(event: NostrEvent): string {
+		if (!event || !event.pubkey) return '';
+
+		return nip19.nprofileEncode({
+			pubkey: event.pubkey,
+			relays: explicitRelayUrls
+		});
+	}
+
+	function generateNaddr(event: NostrEvent): string {
+		if (!event || !event.pubkey || !event.kind) return '';
+
+		const dTags = event.tags?.filter((tag: NDKTag) => tag[0] === 'd') || [];
+		const identifier = dTags.length > 0 ? dTags[0][1] : '';
+
+		return nip19.naddrEncode({
+			pubkey: event.pubkey,
+			kind: event.kind,
+			identifier,
+			relays: explicitRelayUrls
+		});
+	}
 </script>
 
 <svelte:head>
@@ -47,7 +77,7 @@
 			<Tabs.Root value="overview">
 				<Tabs.List>
 					<Tabs.Trigger value="overview">Overview</Tabs.Trigger>
-					<Tabs.Trigger value="install" disabled>Install</Tabs.Trigger>
+					<Tabs.Trigger value="install">Install</Tabs.Trigger>
 				</Tabs.List>
 				<Tabs.Content value="overview">
 					<div class="rounded-lg border border-primary/20 bg-background p-6">
@@ -132,11 +162,191 @@
 							{/if}
 							<h1 class="mb-2 text-3xl font-bold text-primary">{$dvmcpQuery.data.name}</h1>
 						</div>
-						<div>
-							<div class="rounded-lg border border-primary/20 bg-background p-4">Soon!</div>
+						<div class="space-y-6">
+							<div>
+								<h2 class="mb-3 text-xl font-semibold text-primary">Installation Options</h2>
+								<p class="mb-4 text-primary/70">
+									You can install and run this DVM locally using the @dvmcp/discovery package.
+									Choose one of the following methods:
+								</p>
+
+								<div class="space-y-4">
+									<div class="rounded-lg border border-primary/20 bg-background p-4">
+										<h3 class="mb-2 text-lg font-medium text-primary">
+											Option 1: Using Server Flag
+										</h3>
+										<p class="mb-2 text-primary/70">Run with the server's naddr:</p>
+
+										<Tabs.Root value="raw" class="w-full">
+											<Tabs.List>
+												<Tabs.Trigger value="raw">Command</Tabs.Trigger>
+												<Tabs.Trigger value="claude">Claude</Tabs.Trigger>
+											</Tabs.List>
+
+											<Tabs.Content value="raw">
+												<div class="mb-2">
+													<div class="mb-2 flex items-center justify-between">
+														<span class="text-sm text-primary/50">Command</span>
+														<button
+															class="text-sm text-primary hover:text-primary/80"
+															on:click={() =>
+																copyToClipboard(`npx @dvmcp/discovery --server ${naddrString}`)}
+															aria-label="Copy server command to clipboard"
+														>
+															Copy
+														</button>
+													</div>
+													<pre
+														class="overflow-auto rounded-lg border border-primary/20 p-4 font-mono text-sm text-primary/50">npx @dvmcp/discovery --server {naddrString}</pre>
+												</div>
+											</Tabs.Content>
+
+											<Tabs.Content value="claude">
+												<div class="mb-2">
+													<div class="mb-2 flex items-center justify-between">
+														<span class="text-sm text-primary/50">JSON Configuration</span>
+														<button
+															class="text-sm text-primary hover:text-primary/80"
+															on:click={() =>
+																copyToClipboard(
+																	JSON.stringify(
+																		{
+																			mcpServers: {
+																				dvm: {
+																					command: 'npx',
+																					args: ['@dvmcp/discovery', '--server', naddrString]
+																				}
+																			}
+																		},
+																		null,
+																		2
+																	)
+																)}
+															aria-label="Copy Claude configuration to clipboard"
+														>
+															Copy
+														</button>
+													</div>
+													<pre
+														class="overflow-auto rounded-lg border border-primary/20 p-4 font-mono text-sm text-primary/50">{`
+  "mcpServers": {
+    "dvm": {
+      "command": "npx",
+      "args": [
+        "@dvmcp/discovery",
+        "--server",
+        "${naddrString}"
+      ]
+    }
+  }
+`}</pre>
+												</div>
+											</Tabs.Content>
+										</Tabs.Root>
+
+										<p class="text-sm text-primary/70">
+											This command uses the naddr which encodes the event kind, public key, and the
+											'd' tag of the event. It will get the tools just from this server.
+										</p>
+									</div>
+
+									<div class="rounded-lg border border-primary/20 bg-background p-4">
+										<h3 class="mb-2 text-lg font-medium text-primary">
+											Option 2: Using Provider Flag
+										</h3>
+										<p class="mb-2 text-primary/70">Run with the provider's nprofile:</p>
+
+										<Tabs.Root value="raw" class="w-full">
+											<Tabs.List>
+												<Tabs.Trigger value="raw">Command</Tabs.Trigger>
+												<Tabs.Trigger value="claude">Claude</Tabs.Trigger>
+											</Tabs.List>
+
+											<Tabs.Content value="raw">
+												<div class="mb-2">
+													<div class="mb-2 flex items-center justify-between">
+														<span class="text-sm text-primary/50">Command</span>
+														<button
+															class="text-sm text-primary hover:text-primary/80"
+															on:click={() =>
+																copyToClipboard(
+																	`npx @dvmcp/discovery --provider ${nprofileString}`
+																)}
+															aria-label="Copy provider command to clipboard"
+														>
+															Copy
+														</button>
+													</div>
+													<pre
+														class="overflow-auto rounded-lg border border-primary/20 p-4 font-mono text-sm text-primary/50">npx @dvmcp/discovery --provider {nprofileString}</pre>
+												</div>
+											</Tabs.Content>
+
+											<Tabs.Content value="claude">
+												<div class="mb-2">
+													<div class="mb-2 flex items-center justify-between">
+														<span class="text-sm text-primary/50">JSON Configuration</span>
+														<button
+															class="text-sm text-primary hover:text-primary/80"
+															on:click={() =>
+																copyToClipboard(
+																	JSON.stringify(
+																		{
+																			mcpServers: {
+																				dvm: {
+																					command: 'npx',
+																					args: ['@dvmcp/discovery', '--provider', nprofileString]
+																				}
+																			}
+																		},
+																		null,
+																		2
+																	)
+																)}
+															aria-label="Copy Claude configuration to clipboard"
+														>
+															Copy
+														</button>
+													</div>
+													<pre
+														class="overflow-auto rounded-lg border border-primary/20 p-4 font-mono text-sm text-primary/50">{`
+  "mcpServers": {
+    "dvm": {
+      "command": "npx",
+      "args": [
+        "@dvmcp/discovery",
+        "--provider",
+        "${nprofileString}"
+      ]
+    }
+  }
+`}</pre>
+												</div>
+											</Tabs.Content>
+										</Tabs.Root>
+
+										<p class="text-sm text-primary/70">
+											This command uses the nprofile which encodes the public key and relay hints.
+											It will get all tools from this provider.
+										</p>
+									</div>
+								</div>
+							</div>
+
+							<div>
+								<h2 class="mb-3 text-xl font-semibold text-primary">What Happens Next?</h2>
+								<p class="text-primary/70">After running one of the commands above:</p>
+								<ol class="mt-2 list-inside list-decimal space-y-2 pl-4 text-primary/70">
+									<li>
+										The discovery package will fetch the DVM configuration from the Nostr network
+									</li>
+									<li>It will start a local server running this DVM</li>
+									<li>You can then interact with the DVM through your local instance</li>
+								</ol>
+							</div>
 						</div>
-					</div></Tabs.Content
-				>
+					</div>
+				</Tabs.Content>
 			</Tabs.Root>
 			<div class="rounded-lg border border-primary/20 bg-background p-6">
 				<h2 class="mb-3 text-xl font-semibold text-primary">Try it out</h2>

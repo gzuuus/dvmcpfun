@@ -12,6 +12,7 @@
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import type { JSONSchema7 } from 'json-schema';
 	import { filterOptionalParameters } from '$lib/utils/tools';
+	import { copyToClipboard } from '$lib/utils';
 
 	export let provider: ExtendedDVMCP;
 	export let tool: Tool;
@@ -70,7 +71,7 @@
 						<button
 							class="text-sm text-primary hover:text-primary/80"
 							on:click={() => {
-								navigator.clipboard.writeText(formattedOutput(createdForm.value));
+								copyToClipboard(formattedOutput(createdForm.value));
 							}}
 						>
 							Copy
@@ -97,7 +98,7 @@
 							<button
 								class="text-sm text-primary hover:text-primary/80"
 								on:click={() => {
-									navigator.clipboard.writeText($executionStore.result[0].text);
+									copyToClipboard($executionStore.result[0].text);
 								}}
 							>
 								Copy
@@ -115,7 +116,7 @@
 						<button
 							class="text-sm text-primary hover:text-primary/80"
 							on:click={() => {
-								navigator.clipboard.writeText(JSON.stringify($executionStore.result, null, 2));
+								copyToClipboard(JSON.stringify($executionStore.result, null, 2));
 							}}
 						>
 							Copy

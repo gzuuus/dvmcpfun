@@ -1,11 +1,12 @@
 import NDK from '@nostr-dev-kit/ndk';
 import { writable } from 'svelte/store';
 
+export const appRelay = ['wss://relay.dvmcp.fun'];
 export const explicitRelayUrls = [
 	// 'wss://relay.nostr.net',
 	// 'wss://relay.damus.io',
 	// 'wss://purplepag.es',
-	'wss://relay.dvmcp.fun'
+	...appRelay
 	// 'wss://relay.nostrdvm.com'
 	// 'ws://localhost:10547'
 ];

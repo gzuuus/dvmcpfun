@@ -14,7 +14,13 @@
 		return dvmcp.name.toLowerCase().includes(search) || dvmcp.about?.toLowerCase().includes(search);
 	});
 
-	let phrases = ['is fun', 'is for everyone', 'is open source', 'is decentralized computing'];
+	let phrases = [
+		'is fun',
+		'is for everyone',
+		'is open source',
+		'is decentralized computing',
+		'DVM♥️MCP'
+	];
 </script>
 
 <svelte:head>

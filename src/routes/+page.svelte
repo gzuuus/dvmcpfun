@@ -2,6 +2,7 @@
 	import { createDVMCPsQuery } from '$lib/queries/tools';
 	import DvmcpCard from '$lib/components/dvmcpCard.svelte';
 	import WordRotate from '$lib/components/wordRotate.svelte';
+	import ndkStore from '$lib/stores/nostr';
 
 	const pageTitle = 'Home | DVMCP Fun';
 
@@ -13,6 +14,11 @@
 		const search = searchQuery.toLowerCase();
 		return dvmcp.name.toLowerCase().includes(search) || dvmcp.about?.toLowerCase().includes(search);
 	});
+
+	$: {
+		$ndkStore.pool;
+		$dvmcpQuery.refetch();
+	}
 
 	let phrases = [
 		'is fun',
@@ -42,13 +48,6 @@
 			bind:value={searchQuery}
 			class="flex-1 rounded-lg border border-primary/20 bg-background px-4 py-2 text-primary/50 placeholder-primary/40 focus:border-primary/50 focus:outline-none"
 		/>
-		<!-- <button
-			on:click={() => $dvmcpQuery.refetch()}
-			class="flex items-center justify-center rounded-lg border border-primary/20 bg-background px-3 hover:bg-primary/5 active:bg-primary/10"
-			title="Refresh DVMCPs"
-		>
-			<RefreshCw class="h-5 w-5 text-primary/50" />
-		</button> -->
 	</div>
 	{#if $dvmcpQuery.isLoading}
 		<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">

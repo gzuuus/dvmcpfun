@@ -45,7 +45,9 @@
 	{/if}
 
 	{#if isOpen}
-		<div class={`fixed bottom-0 flex w-fit flex-col gap-2 border-2 border-black bg-white p-2`}>
+		<div
+			class={`fixed bottom-0 flex w-fit flex-col gap-2 border-2 border-black bg-white p-2 dark:border-primary dark:bg-background`}
+		>
 			<div class="text-end">
 				<Button size="icon" variant="ghost" onclick={() => (isOpen = false)}>
 					<CircleX class="h-6 w-6" />

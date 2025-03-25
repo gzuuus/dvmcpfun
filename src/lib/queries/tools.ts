@@ -1,4 +1,4 @@
-import { type NDKKind } from '@nostr-dev-kit/ndk';
+import { NDKRelay, NDKRelaySet, NDKSubscriptionCacheUsage, type NDKKind } from '@nostr-dev-kit/ndk';
 import type { NDKFilter } from '@nostr-dev-kit/ndk';
 import ndkStore from '$lib/stores/nostr';
 import { toolKeys } from './queryKeyFactory';
@@ -12,7 +12,19 @@ export const fetchDVMCPs = async () => {
 		'#t': ['mcp']
 	};
 
-	const events = await get(ndkStore).fetchEvents(filter);
+	const ndk = get(ndkStore);
+	const relayUrls = Array.from(ndk.pool.relays.keys());
+
+	const relaySet = NDKRelaySet.fromRelayUrls(relayUrls, ndk);
+
+	const events = await ndk.fetchEvents(
+		filter,
+		{
+			cacheUsage: NDKSubscriptionCacheUsage.ONLY_RELAY
+		},
+		relaySet
+	);
+
 	const dvmcp = (await Promise.all(Array.from(events).map(parseDVMCP))).filter(
 		(dvmcp) => dvmcp !== null
 	);
@@ -20,14 +32,25 @@ export const fetchDVMCPs = async () => {
 };
 
 export const fetchToolById = async (id: string) => {
-	const event = await get(ndkStore).fetchEvent(id);
+	const ndk = get(ndkStore);
+	const relayUrls = Array.from(ndk.pool.relays.keys());
+
+	const relaySet = NDKRelaySet.fromRelayUrls(relayUrls, ndk);
+
+	const event = await ndk.fetchEvent(
+		id,
+		{
+			cacheUsage: NDKSubscriptionCacheUsage.ONLY_RELAY
+		},
+		relaySet
+	);
+
 	if (!event) {
 		throw new Error('Tool not found');
 	}
 	return parseDVMCP(event);
 };
 
-// Svelte Query hooks
 export const createDVMCPsQuery = () => {
 	return createQuery({
 		queryKey: toolKeys.all,

@@ -1,22 +1,14 @@
 <script lang="ts">
 	import '../app.css';
-	import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query';
+	import { QueryClientProvider } from '@tanstack/svelte-query';
 	import Header from '$lib/components/Header.svelte';
 	import { ModeWatcher } from 'mode-watcher';
 	import { Toaster } from '$lib/components/ui/sonner/index.js';
 	import RelayWidget from '$lib/components/relayWidget.svelte';
+	import { queryClient } from '$lib/queries/queryClient';
 
 	let { children } = $props();
 	const siteTitle = 'DVMCP Fun';
-
-	const queryClient = new QueryClient({
-		defaultOptions: {
-			queries: {
-				staleTime: 1000 * 60 * 5, // 5 minutes
-				refetchOnWindowFocus: false
-			}
-		}
-	});
 </script>
 
 <svelte:head>

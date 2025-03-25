@@ -3,10 +3,10 @@ import { writable } from 'svelte/store';
 
 export const appRelay = ['wss://relay.dvmcp.fun'];
 export const explicitRelayUrls = [
+	...appRelay
 	// 'wss://relay.nostr.net',
 	// 'wss://relay.damus.io',
 	// 'wss://purplepag.es',
-	...appRelay
 	// 'wss://relay.nostrdvm.com'
 	// 'ws://localhost:10547'
 ];

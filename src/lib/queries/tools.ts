@@ -19,9 +19,9 @@ export const fetchDVMCPs = async (
 		try {
 			const cachedEvents = await eventCache?.query({ kind: 31990 });
 			if (cachedEvents && cachedEvents.length > 0) {
-				const dvmcp = (await Promise.all(cachedEvents.map(parseDVMCP))).filter(
-					(dvmcp) => dvmcp !== null
-				);
+				const dvmcp = (await Promise.all(cachedEvents.map(parseDVMCP)))
+					.filter((dvmcp) => dvmcp !== null)
+					.sort((a, b) => b.event.created_at - a.event.created_at);
 
 				if (backgroundRefreshCallback && !forceRefresh) {
 					setTimeout(async () => {
@@ -58,9 +58,9 @@ export const fetchDVMCPs = async (
 		await eventCache?.set(event);
 	}
 
-	const dvmcp = (await Promise.all(Array.from(events).map(parseDVMCP))).filter(
-		(dvmcp) => dvmcp !== null
-	);
+	const dvmcp = (await Promise.all(Array.from(events).map(parseDVMCP)))
+		.filter((dvmcp) => dvmcp !== null)
+		.sort((a, b) => b.event.created_at - a.event.created_at);
 	return dvmcp;
 };
 

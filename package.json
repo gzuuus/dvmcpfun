@@ -37,7 +37,8 @@
 	},
 	"dependencies": {
 		"@modelcontextprotocol/sdk": "^1.7.0",
-		"@nostr-dev-kit/ndk": "^2.12.2",
+		"@nostr-dev-kit/ndk": "^2.13.0",
+		"@nostr-dev-kit/ndk-cache-dexie": "^2.6.0",
 		"@sjsf/ajv8-validator": "^1.9.2",
 		"@sjsf/form": "^1.9.2",
 		"@sjsf/shadcn-theme": "^1.9.2",

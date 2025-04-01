@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { setThemeContext } from '@sjsf/shadcn-theme';
 	import { components } from '@sjsf/shadcn-theme/default';
 	import ToolForm from '$lib/components/ToolForm.svelte';
@@ -7,11 +7,11 @@
 	import { createDVMCPQuery } from '$lib/queries/tools';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import { nip19 } from 'nostr-tools';
-	import { appRelay, explicitRelayUrls } from '$lib/stores/nostr';
+	import ndkStore from '$lib/stores/nostr';
 	import type { NDKTag, NostrEvent } from '@nostr-dev-kit/ndk';
 	import { copyToClipboard } from '$lib/utils';
 
-	const dvmcpQuery = createDVMCPQuery($page.params.id);
+	const dvmcpQuery = createDVMCPQuery(page.params.id);
 
 	setThemeContext({ components });
 
@@ -19,15 +19,18 @@
 		? `${$dvmcpQuery.data.name.length > 12 ? $dvmcpQuery.data.name.slice(0, 12) + '...' : $dvmcpQuery.data.name} | DVMCP Fun`
 		: 'Loading... | DVMCP Fun';
 
-	$: nprofileString = $dvmcpQuery.data ? generateNprofile($dvmcpQuery.data.event) : '';
-	$: naddrString = $dvmcpQuery.data ? generateNaddr($dvmcpQuery.data.event) : '';
+	$: currentRelayPool = Array.from($ndkStore.pool.relays.values()).map((relay) => relay.url);
+	$: nprofileString =
+		$dvmcpQuery.data && currentRelayPool ? generateNprofile($dvmcpQuery.data.event) : '';
+	$: naddrString =
+		$dvmcpQuery.data && currentRelayPool ? generateNaddr($dvmcpQuery.data.event) : '';
 
 	function generateNprofile(event: NostrEvent): string {
 		if (!event || !event.pubkey) return '';
 
 		return nip19.nprofileEncode({
 			pubkey: event.pubkey,
-			relays: explicitRelayUrls
+			relays: currentRelayPool
 		});
 	}
 
@@ -41,7 +44,7 @@
 			pubkey: event.pubkey,
 			kind: event.kind,
 			identifier,
-			relays: explicitRelayUrls
+			relays: currentRelayPool
 		});
 	}
 </script>

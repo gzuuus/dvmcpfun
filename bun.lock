@@ -5,7 +5,8 @@
       "name": "dvmcpfun",
       "dependencies": {
         "@modelcontextprotocol/sdk": "^1.7.0",
-        "@nostr-dev-kit/ndk": "^2.12.2",
+        "@nostr-dev-kit/ndk": "^2.13.0",
+        "@nostr-dev-kit/ndk-cache-dexie": "^2.6.0",
         "@sjsf/ajv8-validator": "^1.9.2",
         "@sjsf/form": "^1.9.2",
         "@sjsf/shadcn-theme": "^1.9.2",
@@ -158,7 +159,9 @@
 
     "@nodelib/fs.walk": ["@nodelib/fs.walk@1.2.8", "", { "dependencies": { "@nodelib/fs.scandir": "2.1.5", "fastq": "^1.6.0" } }, "sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg=="],
 
-    "@nostr-dev-kit/ndk": ["@nostr-dev-kit/ndk@2.12.2", "", { "dependencies": { "@noble/curves": "^1.6.0", "@noble/hashes": "^1.5.0", "@noble/secp256k1": "^2.1.0", "@scure/base": "^1.1.9", "debug": "^4.3.6", "light-bolt11-decoder": "^3.2.0", "nostr-tools": "^2.7.1", "tseep": "^1.2.2", "typescript-lru-cache": "^2.0.0", "utf8-buffer": "^1.0.0", "websocket-polyfill": "^0.0.3" } }, "sha512-uvautgwbpk3AgddoFpew67/FiaV/zpKwwvSnjCvbE/tAdJBpUUS+VjWR5WfUnJvxTy/ZZpPW+X2TkwVFHhUdvA=="],
+    "@nostr-dev-kit/ndk": ["@nostr-dev-kit/ndk@2.13.0", "", { "dependencies": { "@noble/curves": "^1.6.0", "@noble/hashes": "^1.5.0", "@noble/secp256k1": "^2.1.0", "@scure/base": "^1.1.9", "debug": "^4.3.6", "light-bolt11-decoder": "^3.2.0", "tseep": "^1.2.2", "typescript-lru-cache": "^2.0.0", "utf8-buffer": "^1.0.0", "websocket-polyfill": "^0.0.3" }, "peerDependencies": { "nostr-tools": "^2.7.1" } }, "sha512-e3wwHDP4PQW18Ps80WirJRWL4J3MLVCxao6pgmcmwLy7kYzar8ovM7CNr4H0i5ig5I04l081G2/BrzYl9xKlqA=="],
+
+    "@nostr-dev-kit/ndk-cache-dexie": ["@nostr-dev-kit/ndk-cache-dexie@2.6.0", "", { "dependencies": { "@nostr-dev-kit/ndk": "2.13.0", "debug": "^4.3.7", "dexie": "^4.0.8", "nostr-tools": "^2.4.0", "typescript-lru-cache": "^2.0.0" } }, "sha512-aDwrtIEv8XpzUC3V7T3naldOTYJQn0xCDwIED9rMWcQ953u4mcDsGv2LtPtayNAXE4tXxVEoH9kcFC5PJqnU2Q=="],
 
     "@pkgjs/parseargs": ["@pkgjs/parseargs@0.11.0", "", {}, "sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg=="],
 
@@ -335,6 +338,8 @@
     "destroy": ["destroy@1.2.0", "", {}, "sha512-2sJGJTaXIIaR1w4iJSNoN0hnMY7Gpc/n8D4qSCJw8QqFWXf7cuAgnEHxBpweaVcPevC2l3KpjYCx3NypQQgaJg=="],
 
     "devalue": ["devalue@5.1.1", "", {}, "sha512-maua5KUiapvEwiEAe+XnlZ3Rh0GD+qI1J/nb9vrJc3muPXvcF/8gXYTWF76+5DAqHyDUtOIImEuo0YKE9mshVw=="],
+
+    "dexie": ["dexie@4.0.11", "", {}, "sha512-SOKO002EqlvBYYKQSew3iymBoN2EQ4BDw/3yprjh7kAfFzjBYkaMNa/pZvcA7HSWlcKSQb9XhPe3wKyQ0x4A8A=="],
 
     "didyoumean": ["didyoumean@1.2.2", "", {}, "sha512-gxtyfqMg7GKyhQmb056K7M3xszy/myH8w+B4RT+QXBQsvAOdc3XymqDDPHx1BgPgsdAA5SIifona89YtRATDzw=="],
 

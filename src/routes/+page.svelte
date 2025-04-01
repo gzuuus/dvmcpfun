@@ -8,7 +8,6 @@
 
 	const dvmcpQuery = createDVMCPsQuery();
 	let searchQuery = '';
-
 	$: filteredDvmcps = $dvmcpQuery.data?.filter((dvmcp) => {
 		if (!searchQuery) return true;
 		const search = searchQuery.toLowerCase();

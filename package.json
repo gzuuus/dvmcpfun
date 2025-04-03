@@ -46,6 +46,7 @@
 		"ajv": "8",
 		"fake-indexeddb": "^6.0.0",
 		"lucide-svelte": "^0.482.0",
+		"marked": "^15.0.7",
 		"mode-watcher": "^0.5.1",
 		"nostr-tools": "^2.11.0"
 	}

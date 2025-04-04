@@ -7,20 +7,27 @@
 	const pageTitle = 'Home | DVMCP Fun';
 
 	const dvmcpQuery = createDVMCPsQuery();
-	let searchQuery = '';
+	let searchQuery = $state('');
 
-	$: filteredDvmcps = $dvmcpQuery.data?.filter((dvmcp) => {
+	let previousRelayCount = $state(0);
+	
+	// Filter DVMCPs based on search query
+	let filteredDvmcps = $derived($dvmcpQuery.data?.filter((dvmcp) => {
 		if (!searchQuery) return true;
 		const search = searchQuery.toLowerCase();
 		return dvmcp.name.toLowerCase().includes(search) || dvmcp.about?.toLowerCase().includes(search);
-	});
+	}));
 
-	// FIXME: refetches all the time
-	$: {
+	// Only refetch when the number of relays actually changes
+	$effect(() => {
 		if ($ndkStore.pool) {
-			$dvmcpQuery.refetch();
+			const currentRelayCount = $ndkStore.pool.relays.size;
+			if (currentRelayCount !== previousRelayCount) {
+				previousRelayCount = currentRelayCount;
+				$dvmcpQuery.refetch();
+			}
 		}
-	}
+	})
 
 	let phrases = [
 		'is fun',

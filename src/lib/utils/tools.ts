@@ -9,7 +9,21 @@ export const parseDVMCP = async (event: NDKEvent): Promise<ExtendedDVMCP | null>
 		if (!parsedContent?.name || !parsedContent.tools) return null;
 		const nostrEvent = await event.toNostrEvent();
 		const capabilities = event.tags.filter((tag) => tag[0] === 'capabilities').map((tag) => tag[1]);
-		const toolNames = event.tags.filter((tag) => tag[0] == 't').map((tag) => tag[1]);
+		const toolNames = event.tags.filter((tag) => tag[0] === 't').map((tag) => tag[1]);
+
+		const toolPricing = new Map();
+		event.tags
+			.filter((tag) => tag[0] === 't' && tag.length >= 3)
+			.forEach((tag) => {
+				const toolName = tag[1];
+				const price = tag[2];
+				const unit = tag.length >= 4 ? tag[3] : 'sats';
+
+				if (price) {
+					toolPricing.set(toolName, { price, unit });
+				}
+			});
+
 		return {
 			name: parsedContent?.name,
 			picture: parsedContent.picture,
@@ -19,7 +33,8 @@ export const parseDVMCP = async (event: NDKEvent): Promise<ExtendedDVMCP | null>
 			tools: parsedContent?.tools,
 			event: nostrEvent,
 			capabilities,
-			toolNames
+			toolNames,
+			toolPricing: toolPricing.size > 0 ? toolPricing : undefined
 		};
 	} catch (error) {
 		console.error(error);

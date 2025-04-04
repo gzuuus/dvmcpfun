@@ -16,7 +16,6 @@ export const fetchDVMCPs = async () => {
 	const relayUrls = Array.from(ndk.pool.relays.keys());
 
 	const relaySet = NDKRelaySet.fromRelayUrls(relayUrls, ndk);
-
 	const events = await ndk.fetchEvents(
 		filter,
 		{

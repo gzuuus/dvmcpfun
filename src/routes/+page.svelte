@@ -10,13 +10,17 @@
 	let searchQuery = $state('');
 
 	let previousRelayCount = $state(0);
-	
+
 	// Filter DVMCPs based on search query
-	let filteredDvmcps = $derived($dvmcpQuery.data?.filter((dvmcp) => {
-		if (!searchQuery) return true;
-		const search = searchQuery.toLowerCase();
-		return dvmcp.name.toLowerCase().includes(search) || dvmcp.about?.toLowerCase().includes(search);
-	}));
+	let filteredDvmcps = $derived(
+		$dvmcpQuery.data?.filter((dvmcp) => {
+			if (!searchQuery) return true;
+			const search = searchQuery.toLowerCase();
+			return (
+				dvmcp.name.toLowerCase().includes(search) || dvmcp.about?.toLowerCase().includes(search)
+			);
+		})
+	);
 
 	// Only refetch when the number of relays actually changes
 	$effect(() => {
@@ -27,7 +31,7 @@
 				$dvmcpQuery.refetch();
 			}
 		}
-	})
+	});
 
 	let phrases = [
 		'is fun',

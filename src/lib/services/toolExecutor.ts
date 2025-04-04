@@ -8,14 +8,16 @@ import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { setupNDKSigner } from '$lib/stores/login';
 import { filterOptionalParameters } from '$lib/utils/tools';
 import type { JSONSchema7 } from 'json-schema';
+import type { PaymentInfo } from '$lib/types';
 
-export type ExecutionStatus = 'idle' | 'loading' | 'success' | 'error';
+export type ExecutionStatus = 'idle' | 'loading' | 'success' | 'error' | 'payment-required';
 
 export interface ToolExecutionState {
 	status: ExecutionStatus;
 	result: any | null;
 	error: string | null;
 	toolName: string | null;
+	paymentInfo?: PaymentInfo;
 }
 
 export class ToolExecutor {
@@ -85,6 +87,7 @@ export class ToolExecutor {
 			try {
 				const requestEvent = await this.createToolRequest(tool, params, providerPk);
 				const executionId = requestEvent.id;
+				const executionStore = this.getExecutionStore(tool.name);
 
 				const timeoutId = setTimeout(() => {
 					reject(new Error(`Tool execution timed out after ${ToolExecutor.EXECUTION_TIMEOUT}ms`));
@@ -116,17 +119,47 @@ export class ToolExecutor {
 						}
 					} else if (event.kind === DVM_NOTICE_KIND) {
 						const statusTag = event.tags.find((t) => t[0] === 'status');
-						if (statusTag && statusTag[1] === 'error') {
+						if (!statusTag) return;
+
+						const status = statusTag[1];
+
+						if (status === 'error') {
 							clearTimeout(timeoutId);
 							this.cleanupExecution(executionId);
 							reject(new Error(event.content));
+						} else if (status === 'payment-required') {
+							const amountTag = event.tags.find((t) => t[0] === 'amount');
+							const invoiceTag = event.tags.find((t) => t[0] === 'invoice');
+							const eventIdTag = event.tags.find((t) => t[0] === 'e');
+							const pubkeyTag = event.tags.find((t) => t[0] === 'p');
+
+							if (amountTag && invoiceTag && eventIdTag && pubkeyTag) {
+								const paymentInfo: PaymentInfo = {
+									amount: amountTag[1],
+									unit: amountTag[2] || 'sats',
+									invoice: invoiceTag[1],
+									eventId: eventIdTag[1],
+									pubkey: pubkeyTag[1]
+								};
+
+								executionStore.update((state) => ({
+									...state,
+									status: 'payment-required',
+									paymentInfo
+								}));
+							}
+						} else if (status === 'payment-accepted') {
+							executionStore.update((state) => ({
+								...state,
+								status: 'loading',
+								paymentInfo: undefined
+							}));
 						}
 					}
 				});
 
 				this.executionSubscriptions.set(executionId, subscription);
 
-				// Publish the request
 				await requestEvent.publish();
 			} catch (error) {
 				reject(error);

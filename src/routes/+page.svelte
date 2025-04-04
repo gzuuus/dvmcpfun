@@ -15,9 +15,11 @@
 		return dvmcp.name.toLowerCase().includes(search) || dvmcp.about?.toLowerCase().includes(search);
 	});
 
+	// FIXME: refetches all the time
 	$: {
-		$ndkStore.pool;
-		$dvmcpQuery.refetch();
+		if ($ndkStore.pool) {
+			$dvmcpQuery.refetch();
+		}
 	}
 
 	let phrases = [

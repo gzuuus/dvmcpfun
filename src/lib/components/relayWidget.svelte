@@ -14,8 +14,9 @@
 	function handleAddRelay() {
 		if (inputRelayUrl) {
 			$ndkStore.pool.addRelay(
-				new NDKRelay(normalizeRelayUrl(inputRelayUrl), NDKRelayAuthPolicies.signIn(), $ndkStore)
+				new NDKRelay(inputRelayUrl, NDKRelayAuthPolicies.signIn(), $ndkStore)
 			);
+			$ndkStore.explicitRelayUrls.push(inputRelayUrl);
 			ndkStore.set($ndkStore);
 			inputRelayUrl = '';
 		}

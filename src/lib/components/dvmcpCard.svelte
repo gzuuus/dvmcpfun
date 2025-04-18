@@ -16,9 +16,9 @@
 {#if identifier}
 	<a
 		href="/dvm/{identifier}"
-		class="group flex flex-col gap-4 rounded-xl border border-primary/20 bg-background p-4 no-underline transition hover:border-primary/40 hover:shadow-lg"
+		class="group grid grid-rows-[auto_1fr_auto] rounded-xl border border-primary/20 bg-background p-4 no-underline transition hover:border-primary/40 hover:shadow-lg"
 	>
-		<div class="flex items-center gap-4">
+		<div class="mb-2 flex items-center gap-4">
 			{#if dvmcp.picture}
 				<img
 					src={dvmcp.picture}
@@ -28,11 +28,11 @@
 			{:else}
 				<div class="h-12 w-12 rounded-lg border border-primary/20 bg-border/10"></div>
 			{/if}
-			<div class="flex flex-col">
-				<h3 class="mb-1 text-xl font-semibold text-primary group-hover:text-primary/60">
+			<div class="flex min-w-0 flex-col">
+				<h3 class="mb-1 truncate text-xl font-semibold text-primary group-hover:text-primary/60">
 					{dvmcp.name}
 				</h3>
-				<p class="text-xs text-muted-foreground">
+				<p class="truncate text-xs text-muted-foreground">
 					{#if $authorQuery?.isLoading}
 						<span class="animate-pulse">Loading author...</span>
 					{:else}
@@ -43,9 +43,9 @@
 		</div>
 
 		{#if dvmcp.about || dvmcp.website}
-			<div class="flex flex-col gap-1 border-b border-primary/10 pb-2">
+			<div class="flex min-h-[2.5rem] flex-col gap-1 border-b border-primary/10 pb-2">
 				{#if dvmcp.about}
-					<p class=" line-clamp-2 text-primary/50">{dvmcp.about}</p>
+					<p class="line-clamp-2 text-primary/50">{dvmcp.about}</p>
 				{/if}
 				{#if dvmcp.website}
 					<p class="mt-2 line-clamp-2 text-primary/50">{dvmcp.website}</p>

@@ -1,7 +1,7 @@
 import { toolExecutor } from '$lib/services/toolExecutor';
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 
-export const onSubmit = async (value: unknown, tool: Tool, providerPk: string) => {
+export const onSubmit = async (value: Record<string, unknown>, tool: Tool, providerPk: string) => {
 	try {
 		console.log('Executing tool:', tool.name, 'with parameters:', value);
 		const result = await toolExecutor.executeTool(tool, value, providerPk);

@@ -10,8 +10,9 @@
 	import ndkStore from '$lib/stores/nostr';
 	import type { NDKTag, NostrEvent } from '@nostr-dev-kit/ndk';
 	import { copyToClipboard } from '$lib/utils';
+	import { npubEncode } from 'nostr-tools/nip19';
 
-	const dvmcpQuery = createDVMCPQuery(page.params.id);
+	const dvmcpQuery = createDVMCPQuery(page.params.identifier);
 
 	setThemeContext({ components });
 
@@ -113,7 +114,7 @@
 						{/if}
 						<div class="mb-6">
 							<h2 class="mb-3 text-2xl font-semibold text-primary">Author</h2>
-							<p class=" text-primary/50">{$dvmcpQuery.data.event.pubkey}</p>
+							<p class=" text-primary/50">{npubEncode($dvmcpQuery.data.event.pubkey) ?? ''}</p>
 						</div>
 						<div class="mb-6 flex flex-wrap gap-2">
 							{#if $dvmcpQuery.data.toolNames && $dvmcpQuery.data.toolNames.length > 0}

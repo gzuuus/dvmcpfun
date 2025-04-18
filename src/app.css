@@ -104,4 +104,7 @@
 	img {
 		@apply my-4 max-w-full rounded-lg;
 	}
+	a {
+		@apply underline;
+	}
 }

@@ -57,7 +57,7 @@
 <main class="mx-auto max-w-7xl px-6 py-8">
 	<a
 		href="/"
-		class="mb-8 inline-flex items-center text-primary transition-colors hover:text-primary/80"
+		class="mb-8 inline-flex items-center text-primary no-underline transition-colors hover:text-primary/80 hover:underline"
 	>
 		<span class="mr-2">←</span>
 		Back to Tools

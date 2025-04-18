@@ -21,12 +21,12 @@
 
 <div class="overflow-hidden py-2">
 	{#key index}
-		<h1
+		<h2
 			in:fly={{ y: -50, delay: 200 }}
 			out:fly={{ y: 40, duration: 200 }}
 			class={cn(className, 'text-center')}
 		>
 			{words[index]}
-		</h1>
+		</h2>
 	{/key}
 </div>

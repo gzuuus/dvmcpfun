@@ -40,7 +40,7 @@
 		--muted-foreground: 204 30% 65%;
 		--popover: 120 80% 3%;
 		--popover-foreground: 204 49% 80%;
-		--card: 120 70% 4%;
+		--card: 204 70% 4%;
 		--card-foreground: 204 49% 80%;
 		--border: 204 25% 25%;
 		--input: 204 25% 25%;
@@ -69,5 +69,42 @@
 	}
 	body {
 		@apply bg-background text-foreground;
+	}
+	h1 {
+		@apply mb-4 mt-8 text-4xl font-bold text-primary;
+	}
+	h2 {
+		@apply mb-4 mt-8 text-3xl font-semibold text-primary;
+	}
+	h3 {
+		@apply mb-3 mt-6 text-2xl font-semibold text-primary;
+	}
+	h4 {
+		@apply mb-2 mt-6 text-xl font-semibold text-primary;
+	}
+	p {
+		@apply mb-4 leading-relaxed;
+	}
+	ul,
+	ol {
+		@apply mb-4 pl-6;
+	}
+	li {
+		@apply mb-1 list-disc;
+	}
+	blockquote {
+		@apply my-4 border-l-4 border-primary pl-4 italic text-muted-foreground;
+	}
+	pre {
+		@apply mb-4 overflow-x-auto rounded-lg bg-zinc-100 p-4 dark:bg-zinc-900;
+	}
+	code {
+		@apply rounded bg-zinc-100 px-1 py-0.5 font-mono text-sm dark:bg-zinc-900;
+	}
+	img {
+		@apply my-4 max-w-full rounded-lg;
+	}
+	a {
+		@apply underline;
 	}
 }

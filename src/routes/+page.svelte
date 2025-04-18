@@ -11,7 +11,6 @@
 
 	let previousRelayCount = $state(0);
 
-	// Filter DVMCPs based on search query
 	let filteredDvmcps = $derived(
 		$dvmcpQuery.data?.filter((dvmcp) => {
 			if (!searchQuery) return true;
@@ -22,7 +21,6 @@
 		})
 	);
 
-	// Only refetch when the number of relays actually changes
 	$effect(() => {
 		if ($ndkStore.pool) {
 			const currentRelayCount = $ndkStore.pool.relays.size;
@@ -48,9 +46,9 @@
 
 <!-- Main Content -->
 <main class="mx-auto max-w-7xl px-6 py-8">
-	<div class="mb-16 mt-8 h-20 text-center">
-		<div class="max-h-18 flex flex-col items-center gap-2 text-4xl font-bold">
-			<h1 class="text-[4rem] font-bold text-black dark:text-white">DVMCP</h1>
+	<div class="my-2 h-52 text-center">
+		<div class="flex flex-col items-center">
+			<h1 class="text-[4rem] text-black dark:text-white">DVMCP</h1>
 			<WordRotate class=" font-thin text-black dark:text-white" words={phrases} duration={3250} />
 		</div>
 	</div>

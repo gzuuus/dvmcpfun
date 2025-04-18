@@ -14,10 +14,10 @@
 		</div>
 		<div class="flex gap-4">
 			<a
-				href="/docs"
+				href="/blog"
 				class="flex items-center rounded-md px-4 py-2 font-medium text-primary transition-colors hover:bg-muted"
 			>
-				Docs
+				Blog
 			</a>
 			<a
 				href="https://github.com/gzuuus/dvmcp"

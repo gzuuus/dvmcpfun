@@ -13,7 +13,7 @@
 </script>
 
 <a
-	href="/docs/{article.identifier}"
+	href="/blog/{article.identifier}"
 	class=" flex h-full flex-col overflow-hidden rounded-lg border text-inherit no-underline transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg"
 >
 	{#if article.image}

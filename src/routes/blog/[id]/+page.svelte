@@ -16,7 +16,7 @@
 </svelte:head>
 
 <div class="mx-auto max-w-2xl px-4 py-8">
-	<a href="/docs" class="mb-6 inline-block font-medium text-primary hover:underline"
+	<a href="/blog" class="mb-6 inline-block font-medium text-primary hover:underline"
 		>← Back to Documentation</a
 	>
 

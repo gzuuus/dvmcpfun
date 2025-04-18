@@ -10,61 +10,28 @@
 	<title>{pageTitle}</title>
 </svelte:head>
 
-<div class="docs-container">
-	<h1>Documentation</h1>
+<div class="mx-auto max-w-5xl px-4 py-8">
+	<h1 class="mb-6 text-3xl font-bold text-primary">Documentation</h1>
 
 	{#if $articlesQuery.isLoading}
-		<div class="loading">
+		<div class="mt-8 rounded-lg border border-primary/50 p-8 text-center">
 			<p>Loading articles...</p>
 		</div>
 	{:else if $articlesQuery.isError}
-		<div class="error">
+		<div class="mt-8 rounded-lg bg-destructive/10 p-8 text-center text-destructive">
 			<p>Error loading articles: {$articlesQuery.error?.message || 'Unknown error'}</p>
 		</div>
 	{:else if $articlesQuery.data && $articlesQuery.data.length > 0}
-		<div class="articles-grid">
+		<div class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
 			{#each $articlesQuery.data as article (article.id)}
-				<div class="article-card-container">
+				<div class="h-full">
 					<ArticleCard {article} />
 				</div>
 			{/each}
 		</div>
 	{:else}
-		<div class="no-articles">
+		<div class="mt-8 rounded-lg bg-muted p-8 text-center">
 			<p>No articles found.</p>
 		</div>
 	{/if}
 </div>
-
-<style>
-	.docs-container {
-		max-width: 1200px;
-		margin: 0 auto;
-		padding: 2rem 1rem;
-	}
-
-	.articles-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-		gap: 2rem;
-		margin-top: 2rem;
-	}
-
-	.article-card-container {
-		height: 100%;
-	}
-
-	.loading,
-	.error,
-	.no-articles {
-		margin-top: 2rem;
-		text-align: center;
-		padding: 2rem;
-		background-color: var(--color-bg-secondary);
-		border-radius: 0.5rem;
-	}
-
-	.error {
-		color: var(--color-error);
-	}
-</style>

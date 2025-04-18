@@ -1,18 +1,9 @@
 <script lang="ts">
 	import type { NostrArticle } from '$lib/queries/docs';
+	import { formatDate } from '$lib/utils';
 
 	export let article: NostrArticle;
 
-	// Format date to readable format
-	const formatDate = (timestamp: number) => {
-		return new Date(timestamp * 1000).toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'short',
-			day: 'numeric'
-		});
-	};
-
-	// Truncate text if it's too long
 	const truncate = (text: string, maxLength = 150) => {
 		if (text && text.length > maxLength) {
 			return text.substring(0, maxLength) + '...';
@@ -21,83 +12,24 @@
 	};
 </script>
 
-<a href="/docs/{article.identifier}" class="card">
+<a
+	href="/docs/{article.identifier}"
+	class=" flex h-full flex-col overflow-hidden rounded-lg border text-inherit no-underline transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg"
+>
 	{#if article.image}
-		<div class="card-image">
-			<img src={article.image} alt={article.title} />
+		<div class="h-48 overflow-hidden bg-primary">
+			<img src={article.image} alt={article.title} class="h-full w-full object-cover" />
 		</div>
 	{/if}
-	<div class="card-content">
-		<h2 class="card-title">{article.title}</h2>
+	<div class="flex flex-grow flex-col p-6">
+		<h2 class="mb-3 mt-0 text-xl font-semibold text-primary">{article.title}</h2>
 		{#if article.summary}
-			<p class="card-summary">{truncate(article.summary)}</p>
+			<p class="mb-4 line-clamp-3 flex-grow text-muted-foreground">{truncate(article.summary)}</p>
 		{:else}
-			<p class="card-summary">{truncate(article.content)}</p>
+			<p class="mb-4 line-clamp-3 flex-grow text-muted-foreground">{truncate(article.content)}</p>
 		{/if}
-		<div class="card-meta">
-			<span class="card-date">
-				{formatDate(article.publishedAt || article.createdAt)}
-			</span>
+		<div class="flex items-center justify-between text-xs text-muted-foreground">
+			<span>{formatDate(article.publishedAt || article.createdAt)}</span>
 		</div>
 	</div>
 </a>
-
-<style>
-	.card {
-		display: flex;
-		flex-direction: column;
-		background-color: var(--color-bg-secondary);
-		border-radius: 0.5rem;
-		overflow: hidden;
-		height: 100%;
-		transition:
-			transform 0.2s ease-in-out,
-			box-shadow 0.2s ease-in-out;
-		text-decoration: none;
-		color: inherit;
-	}
-
-	.card:hover {
-		transform: translateY(-4px);
-		box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-	}
-
-	.card-image {
-		height: 200px;
-		overflow: hidden;
-	}
-
-	.card-image img {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-	}
-
-	.card-content {
-		padding: 1.5rem;
-		display: flex;
-		flex-direction: column;
-		flex-grow: 1;
-	}
-
-	.card-title {
-		margin-top: 0;
-		margin-bottom: 0.75rem;
-		font-size: 1.25rem;
-		font-weight: 600;
-	}
-
-	.card-summary {
-		margin-bottom: 1rem;
-		color: var(--color-text-secondary);
-		flex-grow: 1;
-	}
-
-	.card-meta {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		font-size: 0.875rem;
-		color: var(--color-text-tertiary);
-	}
-</style>

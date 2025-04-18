@@ -114,7 +114,9 @@
 						{/if}
 						<div class="mb-6">
 							<h2 class="mb-3 text-2xl font-semibold text-primary">Author</h2>
-							<p class=" text-primary/50">{npubEncode($dvmcpQuery.data.event.pubkey) ?? ''}</p>
+							<p class=" break-all text-primary/50">
+								{npubEncode($dvmcpQuery.data.event.pubkey) ?? ''}
+							</p>
 						</div>
 						<div class="mb-6 flex flex-wrap gap-2">
 							{#if $dvmcpQuery.data.toolNames && $dvmcpQuery.data.toolNames.length > 0}
@@ -360,10 +362,9 @@
 							<Accordion.Root type="single" class="w-full">
 								<Accordion.Item value="item-1">
 									<Accordion.Trigger class="hover:no-underline">
-										<div>
-											<span class=" flex flex-col truncate text-start"
-												>{tool.name}<span class=" text-primary/50">{tool.description}</span>
-											</span>
+										<div class="flex flex-col truncate whitespace-pre-wrap text-start">
+											<span class=" ">{tool.name} </span>
+											<span class=" text-primary/50">{tool.description}</span>
 										</div>
 									</Accordion.Trigger>
 									<Accordion.Content>

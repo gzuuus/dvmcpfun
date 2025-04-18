@@ -9,15 +9,21 @@
 	<div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
 		<div class="flex items-center gap-4">
 			<a href="/">
-				<h1 class="text-2xl font-bold text-primary">DVMCP.fun</h1>
+				<span class="my-1 text-3xl font-bold leading-none text-primary">DVMCP.fun</span>
 			</a>
 		</div>
 		<div class="flex gap-4">
 			<a
+				href="/docs"
+				class="flex items-center rounded-md px-4 py-2 font-medium text-primary transition-colors hover:bg-muted"
+			>
+				Docs
+			</a>
+			<a
 				href="https://github.com/gzuuus/dvmcp"
 				target="_blank"
 				rel="noopener noreferrer"
-				class="rounded-md bg-primary px-4 py-2 text-background transition-colors hover:bg-primary/70"
+				class="truncate rounded-md bg-primary px-4 py-2 text-background transition-colors hover:bg-primary/70"
 			>
 				Build your own
 			</a>

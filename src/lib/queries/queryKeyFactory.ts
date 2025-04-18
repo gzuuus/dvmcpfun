@@ -12,3 +12,8 @@ export const toolKeys = {
 	all: ['tools'] as const,
 	details: (name: string) => [...toolKeys.all, name] as const
 } as const;
+
+export const docsKeys = {
+	all: ['docs'] as const,
+	details: (id: string) => [...docsKeys.all, id] as const
+} as const;

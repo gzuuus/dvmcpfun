@@ -5,8 +5,6 @@
 	import type { FormOptions, UiSchemaRoot } from '@sjsf/form';
 	import { onDestroy } from 'svelte';
 	import { toolExecutor } from '$lib/services/toolExecutor';
-	import { validator } from '../../routes/dvm/[id]/_validator';
-	import { onSubmit } from '../../routes/dvm/[id]/_on-submit';
 	import type { ExtendedDVMCP } from '$lib/types';
 	import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
@@ -15,6 +13,8 @@
 	import { filterOptionalParameters } from '$lib/utils/tools';
 	import { copyToClipboard } from '$lib/utils';
 	import qrcode from 'qrcode-generator';
+	import { validator } from '../../routes/dvm/[identifier]/_validator';
+	import { onSubmit } from '../../routes/dvm/[identifier]/_on-submit';
 
 	export let provider: ExtendedDVMCP;
 	export let tool: Tool;

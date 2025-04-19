@@ -1,38 +1,9 @@
-# sv
+# dvmcp.fun
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+**dvmcp.fun** is a web playground and catalog for the [dvmcp protocol](https://github.com/gzuuus/dvmcp). It lets anyone discover and interact with MCP servers running on the Nostr network, making it easy to find, run, and experiment with new MCP servers for use with large language models (LLMs).
 
-## Creating a project
+- 🌐 Browse and explore a live catalog of MCP servers over Nostr
+- 🚀 Run and register your own MCP server for others to use
+- 🤖 Designed for discovery and interaction with MCP servers
 
-If you're seeing this, you've probably already done this step. Congrats!
-
-```bash
-# create a new project in the current directory
-npx sv create
-
-# create a new project in my-app
-npx sv create my-app
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```bash
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+Learn more about the protocol and how to run your own server in the [dvmcp GitHub repo](https://github.com/gzuuus/dvmcp).

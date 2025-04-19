@@ -1,5 +1,5 @@
 import { type ClassValue, clsx } from 'clsx';
-import { decode } from 'nostr-tools/nip19';
+import { decode, npubEncode } from 'nostr-tools/nip19';
 import { twMerge } from 'tailwind-merge';
 import { encrypt } from 'nostr-tools/nip49';
 import { toast } from 'svelte-sonner';
@@ -54,3 +54,20 @@ export const formatDate = (timestamp: number) => {
 		day: 'numeric'
 	});
 };
+
+export function truncatePubkeyToNpub(pubkey: string): string {
+	pubkey = npubEncode(pubkey);
+	return `${pubkey.slice(0, 8)}...${pubkey.slice(-3)}`;
+}
+
+export function slugify(text: string): string {
+	return text
+		.toString() // Convert to string (just in case)
+		.toLowerCase() // Lowercase all characters
+		.trim() // Remove leading/trailing spaces
+		.normalize('NFD') // Normalize the string to decompose accented characters
+		.replace(/[\u0300-\u036f]/g, '') // Remove all combining diacritical marks
+		.replace(/[^a-z0-9\s-]/g, '') // Remove all non-word characters (allows letters, numbers, spaces, dashes)
+		.replace(/[\s-]+/g, '-') // Replace spaces and dashes with a single dash
+		.replace(/^-+|-+$/g, ''); // Trim dashes from the beginning and the end
+}

@@ -15,6 +15,7 @@
 	import qrcode from 'qrcode-generator';
 	import { validator } from '../../routes/dvm/[identifier]/_validator';
 	import { onSubmit } from '../../routes/dvm/[identifier]/_on-submit';
+	import Spinner from './spinner.svelte';
 
 	export let provider: ExtendedDVMCP;
 	export let tool: Tool;
@@ -133,12 +134,10 @@
 				{:else}
 					<RawForm form={createdForm} class="dark flex flex-col gap-4" />
 					{#if $executionStore.status === 'loading'}
-						<Alert.Root class="border-blue-500/30 bg-blue-500/10">
+						<Alert.Root class="flex flex-col gap-2 border-blue-500/30 bg-blue-500/10">
 							<div class="flex items-center gap-2">
-								<div
-									class="h-4 w-4 animate-spin rounded-full border-2 border-blue-400 border-t-transparent"
-								></div>
-								<Alert.Title class="text-blue-400">Executing Tool</Alert.Title>
+								<Spinner size={4} borderThickness={4} />
+								<Alert.Title class="m-0 text-blue-400">Executing Tool</Alert.Title>
 							</div>
 							<Alert.Description class="text-blue-300">
 								Please wait while the tool is being executed. This may take a few moments...
@@ -147,7 +146,7 @@
 					{/if}
 					<div class="rounded-lg border border-primary/20 bg-background p-4">
 						<div class="mb-2 flex items-center justify-between">
-							<span class="text-sm text-primary/50">Form Values</span>
+							<span class="text-sm text-primary">Form Values</span>
 							<button
 								class="text-sm text-primary hover:text-primary/80"
 								on:click={() => {
@@ -157,7 +156,7 @@
 								Copy
 							</button>
 						</div>
-						<pre class="overflow-auto font-mono text-sm text-primary/50">{formattedOutput(
+						<pre class="overflow-auto font-mono text-sm text-primary">{formattedOutput(
 								createdForm.value
 							)}</pre>
 					</div>

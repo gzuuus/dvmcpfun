@@ -1,5 +1,5 @@
 import { NDKNip07Signer, type NDKNip46Signer, NDKPrivateKeySigner } from '@nostr-dev-kit/ndk';
-import ndkStore, { ndk } from './nostr';
+import ndkStore, { ndk, ndkProfile } from './nostr';
 import { bytesToHex } from '@noble/hashes/utils';
 import { decrypt, encrypt } from 'nostr-tools/nip49';
 import { decode, nsecEncode } from 'nostr-tools/nip19';
@@ -70,7 +70,7 @@ export const loginWithExtension = async (): Promise<boolean> => {
 
 		const user = await ndk.signer.user();
 		saveAccount({
-			hexPubKey: await user.pubkey,
+			hexPubKey: user.pubkey,
 			type: 'NIP07',
 			lastLogged: Date.now()
 		});
@@ -152,6 +152,7 @@ export const setupNDKSigner = async (
 	await signer.blockUntilReady();
 	ndk.signer = signer;
 	const user = await ndk.signer.user();
+	user.ndk = ndkProfile;
 	await user.fetchProfile();
 	ndkStore.set(ndk);
 };

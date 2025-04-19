@@ -2,10 +2,12 @@
 	import { truncatePubkeyToNpub } from '$lib/utils';
 	import type { NDKUserProfile } from '@nostr-dev-kit/ndk';
 	import { createUservalidateNip05Query } from '$lib/queries/authors';
+	import { npubEncode } from 'nostr-tools/nip19';
 	import Spinner from './spinner.svelte';
 	import { Check } from 'lucide-svelte';
 	import X from '@lucide/svelte/icons/x';
-	import { npubEncode } from 'nostr-tools/nip19';
+	import Nip05Badge from './Nip05Badge.svelte';
+
 	export let profile: NDKUserProfile | null = null;
 	export let pubkey: string | undefined = undefined;
 	export let variant: 'inline' | 'compact' | 'extended' | 'full' | 'minimal' = 'compact';
@@ -24,20 +26,19 @@
 
 {#if variant === 'minimal'}
 	{#if profile?.nip05}
-		<span class="inline-flex items-center gap-1 font-mono text-xs">
-			{#if $nip05ValidationQuery?.isLoading}
-				<Spinner color="currentColor" size={2} borderThickness={2} />
-			{:else if $nip05ValidationQuery?.data}
-				<Check size={14} />
-			{:else}
-				<X class="text-destructive" size={14} />
-			{/if}
-			<span title={profile.nip05}>{profile.nip05}</span>
+		<span class="inline-flex items-center gap-1 font-mono text-xs text-foreground">
+			<Nip05Badge
+				nip05={profile.nip05}
+				isLoading={$nip05ValidationQuery?.isLoading}
+				isValid={$nip05ValidationQuery?.data ?? undefined}
+			/>
 		</span>
 	{:else if profile?.displayName || profile?.name}
-		<span class="truncate text-xs font-medium">{profile.displayName || profile.name}</span>
+		<span class="truncate text-xs font-medium text-foreground"
+			>{profile.displayName || profile.name}</span
+		>
 	{:else if pubkey}
-		<span class="font-mono text-xs text-primary" title={npub}>{npub}</span>
+		<span class="font-mono text-xs text-foreground" title={npub}>{npub}</span>
 	{/if}
 {:else if !profile && pubkey}
 	<!-- No profile, just show npub -->
@@ -56,31 +57,11 @@
 		<span class="text-sm font-medium">{displayName}</span>
 		{#if nip05}
 			<span class="text-foreground/40">|</span>
-			{#if $nip05ValidationQuery?.isLoading}
-				<Spinner color="currentColor" size={2} borderThickness={2} />
-				<span
-					class="flex max-w-[16ch] items-center gap-1 truncate font-mono text-xs text-foreground/40"
-					title={nip05}
-				>
-					{nip05}
-				</span>
-			{:else if $nip05ValidationQuery?.data}
-				<Check size={16} />
-				<span
-					class="flex max-w-[16ch] items-center gap-1 truncate font-mono text-xs text-primary/70"
-					title={nip05}
-				>
-					{nip05}
-				</span>
-			{:else}
-				<X class=" text-destructive" size={16} />
-				<span
-					class="flex max-w-[16ch] items-center gap-1 truncate font-mono text-xs text-destructive/70"
-					title={nip05}
-				>
-					{nip05}
-				</span>
-			{/if}
+			<Nip05Badge
+				{nip05}
+				isLoading={$nip05ValidationQuery?.isLoading}
+				isValid={$nip05ValidationQuery?.data ?? undefined}
+			/>
 		{:else if npub}
 			<span class="max-w-[12ch] font-mono text-xs text-foreground/40" title={npub}>{npub}</span>
 		{/if}
@@ -108,7 +89,7 @@
 					{:else if $nip05ValidationQuery?.data}
 						<Check size={16} />
 						<span
-							class="flex max-w-[16ch] items-center gap-1 truncate font-mono text-xs text-primary/70"
+							class="flex max-w-[16ch] items-center gap-1 truncate font-mono text-xs text-foreground/70"
 							title={nip05}
 						>
 							{nip05}
@@ -143,25 +124,11 @@
 				{displayName}
 				{#if nip05}
 					<span class="text-foreground/40">|</span>
-					{#if $nip05ValidationQuery?.isLoading}
-						<Spinner color="currentColor" size={2} borderThickness={2} />
-						<span
-							class="flex max-w-[20ch] items-center gap-1 truncate font-mono text-xs text-foreground/40"
-							title={nip05}>{nip05}</span
-						>
-					{:else if $nip05ValidationQuery?.data}
-						<Check size={16} />
-						<span
-							class="flex max-w-[20ch] items-center gap-1 truncate font-mono text-xs text-primary/70"
-							title={nip05}>{nip05}</span
-						>
-					{:else}
-						<X class="text-destructive" size={16} />
-						<span
-							class="flex max-w-[20ch] items-center gap-1 truncate font-mono text-xs text-destructive/70"
-							title={nip05}>{nip05}</span
-						>
-					{/if}
+					<Nip05Badge
+						{nip05}
+						isLoading={$nip05ValidationQuery?.isLoading}
+						isValid={$nip05ValidationQuery?.data ?? undefined}
+					/>
 				{/if}
 				{#if npub}
 					<span class="text-foreground/40">|</span>

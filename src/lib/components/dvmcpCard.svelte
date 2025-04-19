@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { createAuthorQuery } from '$lib/queries/authors';
 	import type { ExtendedDVMCP } from '$lib/types';
-	import { truncatePubkeyToNpub } from '$lib/utils';
 	import type { NDKTag } from '@nostr-dev-kit/ndk';
 	import AuthorCard from './authorCard.svelte';
+	import { getHexColorFingerprintFromHexPubkey } from '$lib/utils/commons';
 
 	export let dvmcp: ExtendedDVMCP;
 	const authorQuery = createAuthorQuery(dvmcp.event.pubkey);
@@ -14,7 +14,7 @@
 {#if identifier}
 	<a
 		href="/dvm/{identifier}"
-		class="group grid grid-rows-[auto_1fr_auto] rounded-xl border border-primary/40 bg-background p-4 no-underline transition hover:border-primary/40 hover:shadow-lg"
+		class="group grid grid-rows-[auto_1fr_auto] rounded-xl border border-primary/40 bg-background p-4 pt-0 no-underline transition-transform duration-200 hover:-translate-y-1 hover:border-primary/40 hover:shadow-lg"
 	>
 		<div class="mb-2 flex items-center gap-4">
 			{#if dvmcp.picture}
@@ -24,10 +24,15 @@
 					class="h-12 w-12 rounded-lg border border-primary/20 object-cover shadow-sm"
 				/>
 			{:else}
-				<div class="h-12 w-12 rounded-lg border border-primary/20 bg-border/10"></div>
+				<div
+					class="my-4 h-12 w-12 rounded-lg border border-primary/20 bg-border/10"
+					style="background: {getHexColorFingerprintFromHexPubkey(dvmcp.event.pubkey)}"
+				></div>
 			{/if}
 			<div class="flex min-w-0 flex-col">
-				<h3 class="mb-1 truncate text-xl font-semibold text-primary group-hover:text-primary/60">
+				<h3
+					class="m-0 mb-1 truncate text-xl font-semibold text-primary group-hover:text-primary/60"
+				>
 					{dvmcp.name}
 				</h3>
 				<span class="max-w-60">

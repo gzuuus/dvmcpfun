@@ -134,10 +134,10 @@
 				{:else}
 					<RawForm form={createdForm} class="dark flex flex-col gap-4" />
 					{#if $executionStore.status === 'loading'}
-						<Alert.Root class="border-blue-500/30 bg-blue-500/10">
+						<Alert.Root class="flex flex-col gap-2 border-blue-500/30 bg-blue-500/10">
 							<div class="flex items-center gap-2">
-								<Spinner size={2} borderThickness={4} />
-								<Alert.Title class="text-blue-400">Executing Tool</Alert.Title>
+								<Spinner size={4} borderThickness={4} />
+								<Alert.Title class="m-0 text-blue-400">Executing Tool</Alert.Title>
 							</div>
 							<Alert.Description class="text-blue-300">
 								Please wait while the tool is being executed. This may take a few moments...

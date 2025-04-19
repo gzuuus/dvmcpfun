@@ -1,7 +1,7 @@
 {
 	"name": "dvmcpfun",
 	"private": true,
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev",
@@ -36,6 +36,7 @@
 		"vite": "^6.0.0"
 	},
 	"dependencies": {
+		"@changesets/cli": "^2.29.2",
 		"@modelcontextprotocol/sdk": "^1.7.0",
 		"@nostr-dev-kit/ndk": "^2.13.0",
 		"@nostr-dev-kit/ndk-cache-dexie": "^2.6.0",

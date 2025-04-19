@@ -9,10 +9,14 @@
 	import { nip19 } from 'nostr-tools';
 	import ndkStore from '$lib/stores/nostr';
 	import type { NDKTag, NostrEvent } from '@nostr-dev-kit/ndk';
-	import { copyToClipboard } from '$lib/utils';
-	import { npubEncode } from 'nostr-tools/nip19';
+	import { copyToClipboard, slugify } from '$lib/utils';
+	import { createAuthorQuery } from '$lib/queries/authors';
+	import AuthorCard from '$lib/components/authorCard.svelte';
 
 	const dvmcpQuery = createDVMCPQuery(page.params.identifier);
+	$: authorQuery = $dvmcpQuery.data?.event.pubkey
+		? createAuthorQuery($dvmcpQuery.data.event.pubkey)
+		: undefined;
 
 	setThemeContext({ components });
 
@@ -85,7 +89,7 @@
 				</Tabs.List>
 				<Tabs.Content value="overview">
 					<div class="rounded-lg border border-primary/20 bg-background p-6">
-						<div class=" inline-flex items-end gap-2">
+						<div class="flex items-center gap-2">
 							{#if $dvmcpQuery.data.picture}
 								<img
 									src={$dvmcpQuery.data.picture}
@@ -95,28 +99,30 @@
 							{:else}
 								<div class="h-12 w-12 rounded-lg border border-primary/20 bg-border/10"></div>
 							{/if}
-							<h1 class="mb-2 text-3xl font-bold text-primary">{$dvmcpQuery.data.name}</h1>
+							<h1 class="m-0 font-bold text-primary">{$dvmcpQuery.data.name}</h1>
 						</div>
 
 						{#if $dvmcpQuery.data.about}
 							<div class="mb-6">
 								<h2 class="mb-3 text-2xl font-semibold text-primary">About</h2>
-								<p class="text-primary/50">{$dvmcpQuery.data.about}</p>
+								<p class="text-foreground">{$dvmcpQuery.data.about}</p>
 							</div>
 						{/if}
 						{#if $dvmcpQuery.data.website}
 							<div class="mb-6">
 								<h2 class="mb-3 text-2xl font-semibold text-primary">Website</h2>
-								<a href={$dvmcpQuery.data.website} target="_blank" class="text-primary/50"
+								<a href={$dvmcpQuery.data.website} target="_blank" class="text-foreground"
 									>{$dvmcpQuery.data.website}</a
 								>
 							</div>
 						{/if}
 						<div class="mb-6">
 							<h2 class="mb-3 text-2xl font-semibold text-primary">Author</h2>
-							<p class=" break-all text-primary/50">
-								{npubEncode($dvmcpQuery.data.event.pubkey) ?? ''}
-							</p>
+							<AuthorCard
+								profile={$authorQuery?.data}
+								variant="compact"
+								pubkey={$dvmcpQuery.data.event.pubkey}
+							/>
 						</div>
 						<div class="mb-6 flex flex-wrap gap-2">
 							{#if $dvmcpQuery.data.toolNames && $dvmcpQuery.data.toolNames.length > 0}
@@ -171,7 +177,7 @@
 						<div class="space-y-6">
 							<div>
 								<h2 class="mb-3 text-xl font-semibold text-primary">Installation Options</h2>
-								<p class="mb-4 text-primary/70">
+								<p class="mb-4 text-foreground">
 									You can install and run this DVM locally using the @dvmcp/discovery package.
 									Choose one of the following methods:
 								</p>
@@ -181,7 +187,7 @@
 										<h3 class="mb-2 text-lg font-medium text-primary">
 											Option 1: Using Server Flag
 										</h3>
-										<p class="mb-2 text-primary/70">Run with the server's naddr:</p>
+										<p class="mb-2 text-foreground">Run with the server's naddr:</p>
 
 										<Tabs.Root value="raw" class="w-full">
 											<Tabs.List>
@@ -203,7 +209,7 @@
 														</button>
 													</div>
 													<pre
-														class="overflow-auto rounded-lg border border-primary/20 p-4 font-mono text-sm text-primary/50">npx @dvmcp/discovery --server {naddrString}</pre>
+														class="overflow-auto rounded-lg border border-primary/20 p-4 font-mono text-sm text-primary">npx @dvmcp/discovery --server {naddrString}</pre>
 												</div>
 											</Tabs.Content>
 
@@ -234,9 +240,9 @@
 														</button>
 													</div>
 													<pre
-														class="overflow-auto rounded-lg border border-primary/20 p-4 font-mono text-sm text-primary/50">{`
+														class="overflow-auto rounded-lg border border-primary/20 p-4 font-mono text-sm text-primary">{`
   "mcpServers": {
-    "dvm": {
+    "${slugify($dvmcpQuery.data.name) || 'dvm'}": {
       "command": "npx",
       "args": [
         "@dvmcp/discovery",
@@ -260,7 +266,7 @@
 										<h3 class="mb-2 text-lg font-medium text-primary">
 											Option 2: Using Provider Flag
 										</h3>
-										<p class="mb-2 text-primary/70">Run with the provider's nprofile:</p>
+										<p class="mb-2 text-foreground">Run with the provider's nprofile:</p>
 
 										<Tabs.Root value="raw" class="w-full">
 											<Tabs.List>
@@ -284,7 +290,7 @@
 														</button>
 													</div>
 													<pre
-														class="overflow-auto rounded-lg border border-primary/20 p-4 font-mono text-sm text-primary/50">npx @dvmcp/discovery --provider {nprofileString}</pre>
+														class="overflow-auto rounded-lg border border-primary/20 p-4 font-mono text-sm text-primary">npx @dvmcp/discovery --provider {nprofileString}</pre>
 												</div>
 											</Tabs.Content>
 
@@ -315,9 +321,9 @@
 														</button>
 													</div>
 													<pre
-														class="overflow-auto rounded-lg border border-primary/20 p-4 font-mono text-sm text-primary/50">{`
+														class="overflow-auto rounded-lg border border-primary/20 p-4 font-mono text-sm text-primary">{`
   "mcpServers": {
-    "dvm": {
+    "${slugify($dvmcpQuery.data.name) || 'dvm'}": {
       "command": "npx",
       "args": [
         "@dvmcp/discovery",
@@ -364,7 +370,7 @@
 									<Accordion.Trigger class="hover:no-underline">
 										<div class="flex flex-col truncate whitespace-pre-wrap text-start">
 											<span class=" ">{tool.name} </span>
-											<span class=" text-primary/50">{tool.description}</span>
+											<span class=" text-foreground/80">{tool.description}</span>
 										</div>
 									</Accordion.Trigger>
 									<Accordion.Content>

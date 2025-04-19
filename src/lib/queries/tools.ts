@@ -1,4 +1,4 @@
-import { NDKRelay, NDKRelaySet, NDKSubscriptionCacheUsage, type NDKKind } from '@nostr-dev-kit/ndk';
+import { NDKRelaySet, NDKSubscriptionCacheUsage, type NDKKind } from '@nostr-dev-kit/ndk';
 import type { NDKFilter } from '@nostr-dev-kit/ndk';
 import ndkStore from '$lib/stores/nostr';
 import { toolKeys } from './queryKeyFactory';

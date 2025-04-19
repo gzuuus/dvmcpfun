@@ -1,14 +1,12 @@
 <script lang="ts">
 	import { createAuthorQuery } from '$lib/queries/authors';
 	import type { ExtendedDVMCP } from '$lib/types';
+	import { truncatePubkeyToNpub } from '$lib/utils';
 	import type { NDKTag } from '@nostr-dev-kit/ndk';
+	import AuthorCard from './authorCard.svelte';
 
 	export let dvmcp: ExtendedDVMCP;
 	const authorQuery = createAuthorQuery(dvmcp.event.pubkey);
-
-	function truncatePubkey(pubkey: string): string {
-		return `${pubkey.slice(0, 8)}...${pubkey.slice(-3)}`;
-	}
 
 	$: identifier = dvmcp.event.tags?.filter((tag: NDKTag) => tag[0] === 'd')?.[0][1] ?? undefined;
 </script>
@@ -16,7 +14,7 @@
 {#if identifier}
 	<a
 		href="/dvm/{identifier}"
-		class="group grid grid-rows-[auto_1fr_auto] rounded-xl border border-primary/20 bg-background p-4 no-underline transition hover:border-primary/40 hover:shadow-lg"
+		class="group grid grid-rows-[auto_1fr_auto] rounded-xl border border-primary/40 bg-background p-4 no-underline transition hover:border-primary/40 hover:shadow-lg"
 	>
 		<div class="mb-2 flex items-center gap-4">
 			{#if dvmcp.picture}
@@ -32,23 +30,19 @@
 				<h3 class="mb-1 truncate text-xl font-semibold text-primary group-hover:text-primary/60">
 					{dvmcp.name}
 				</h3>
-				<p class="truncate text-xs text-muted-foreground">
-					{#if $authorQuery?.isLoading}
-						<span class="animate-pulse">Loading author...</span>
-					{:else}
-						by {$authorQuery?.data?.name || truncatePubkey(dvmcp.event.pubkey)}
-					{/if}
-				</p>
+				<span class="max-w-60">
+					<AuthorCard profile={$authorQuery?.data} variant="minimal" pubkey={dvmcp.event.pubkey} />
+				</span>
 			</div>
 		</div>
 
 		{#if dvmcp.about || dvmcp.website}
 			<div class="flex min-h-[2.5rem] flex-col gap-1 border-b border-primary/10 pb-2">
 				{#if dvmcp.about}
-					<p class="line-clamp-2 text-primary/50">{dvmcp.about}</p>
+					<p class="line-clamp-2 text-primary/90">{dvmcp.about}</p>
 				{/if}
 				{#if dvmcp.website}
-					<p class="mt-2 line-clamp-2 text-primary/50">{dvmcp.website}</p>
+					<p class="mt-2 line-clamp-2 text-foreground">{dvmcp.website}</p>
 				{/if}
 			</div>
 		{/if}

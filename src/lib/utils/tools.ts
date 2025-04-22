@@ -6,7 +6,7 @@ import type { JSONSchema7 } from 'json-schema';
 export const parseDVMCP = async (event: NDKEvent): Promise<ExtendedDVMCP | null> => {
 	try {
 		const parsedContent = parseAnnouncementContent(event.content);
-		if (!parsedContent?.name || !parsedContent.tools) return null;
+		if (!parsedContent?.name || !parsedContent.tools.length) return null;
 		const nostrEvent = await event.toNostrEvent();
 		const capabilities = event.tags.filter((tag) => tag[0] === 'capabilities').map((tag) => tag[1]);
 		const toolNames = event.tags.filter((tag) => tag[0] === 't').map((tag) => tag[1]);
@@ -23,7 +23,6 @@ export const parseDVMCP = async (event: NDKEvent): Promise<ExtendedDVMCP | null>
 					toolPricing.set(toolName, { price, unit });
 				}
 			});
-
 		return {
 			name: parsedContent?.name,
 			picture: parsedContent.picture,

@@ -12,6 +12,7 @@
 	import { copyToClipboard, slugify } from '$lib/utils';
 	import { createAuthorQuery } from '$lib/queries/authors';
 	import AuthorCard from '$lib/components/authorCard.svelte';
+	import { getHexColorFingerprintFromHexPubkey } from '$lib/utils/commons';
 
 	const dvmcpQuery = createDVMCPQuery(page.params.identifier);
 	$: authorQuery = $dvmcpQuery.data?.event.pubkey
@@ -97,7 +98,12 @@
 									class="h-12 w-12 rounded-lg border border-primary/20 object-cover"
 								/>
 							{:else}
-								<div class="h-12 w-12 rounded-lg border border-primary/20 bg-border/10"></div>
+								<div
+									class="h-12 w-12 rounded-lg border border-primary/20 bg-border/10"
+									style="background: {getHexColorFingerprintFromHexPubkey(
+										$dvmcpQuery.data.event.pubkey
+									)}"
+								></div>
 							{/if}
 							<h1 class="m-0 font-bold text-primary">{$dvmcpQuery.data.name}</h1>
 						</div>

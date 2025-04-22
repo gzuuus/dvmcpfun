@@ -7,6 +7,7 @@
 	const pageTitle = 'Home | DVMCP Fun';
 
 	const dvmcpQuery = createDVMCPsQuery();
+
 	let searchQuery = $state('');
 
 	let previousRelayCount = $state(0);

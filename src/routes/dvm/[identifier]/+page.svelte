@@ -208,7 +208,7 @@
 														<button
 															class="text-sm text-primary hover:text-primary/80"
 															on:click={() =>
-																copyToClipboard(`npx @dvmcp/discovery --server ${naddrString}`)}
+																copyToClipboard(`npx @dvmcp/discovery -y --server ${naddrString}`)}
 															aria-label="Copy server command to clipboard"
 														>
 															Copy
@@ -232,7 +232,7 @@
 																			mcpServers: {
 																				dvm: {
 																					command: 'npx',
-																					args: ['@dvmcp/discovery', '--server', naddrString]
+																					args: ['@dvmcp/discovery', '-y', '--server', naddrString]
 																				}
 																			}
 																		},
@@ -252,6 +252,7 @@
       "command": "npx",
       "args": [
         "@dvmcp/discovery",
+		"-y",
         "--server",
         "${naddrString}"
       ]
@@ -288,7 +289,7 @@
 															class="text-sm text-primary hover:text-primary/80"
 															on:click={() =>
 																copyToClipboard(
-																	`npx @dvmcp/discovery --provider ${nprofileString}`
+																	`npx @dvmcp/discovery -y --provider ${nprofileString}`
 																)}
 															aria-label="Copy provider command to clipboard"
 														>
@@ -313,7 +314,12 @@
 																			mcpServers: {
 																				dvm: {
 																					command: 'npx',
-																					args: ['@dvmcp/discovery', '--provider', nprofileString]
+																					args: [
+																						'@dvmcp/discovery',
+																						'-y',
+																						'--provider',
+																						nprofileString
+																					]
 																				}
 																			}
 																		},
@@ -333,6 +339,7 @@
       "command": "npx",
       "args": [
         "@dvmcp/discovery",
+        "-y",
         "--provider",
         "${nprofileString}"
       ]

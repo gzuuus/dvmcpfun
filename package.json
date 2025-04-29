@@ -14,7 +14,7 @@
 		"lint": "prettier --check . && eslint ."
 	},
 	"devDependencies": {
-		"@lucide/svelte": "^0.483.0",
+		"@lucide/svelte": "^0.503.0",
 		"@sveltejs/adapter-auto": "^4.0.0",
 		"@sveltejs/kit": "^2.20.7",
 		"@sveltejs/vite-plugin-svelte": "^5.0.3",
@@ -45,6 +45,7 @@
 		"@sjsf/shadcn-theme": "^1.9.2",
 		"@tanstack/svelte-query": "^5.74.4",
 		"ajv": "^8.17.1",
+		"chart.js": "^4.4.9",
 		"fake-indexeddb": "^6.0.0",
 		"lucide-svelte": "^0.482.0",
 		"marked": "^15.0.11",

@@ -11,7 +11,8 @@ export const authorKeys = {
 
 export const toolKeys = {
 	all: ['tools'] as const,
-	details: (name: string) => [...toolKeys.all, name] as const
+	details: (name: string) => [...toolKeys.all, name] as const,
+	execution: (hash: string) => [...toolKeys.all, 'execution', hash] as const
 } as const;
 
 export const docsKeys = {

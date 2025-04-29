@@ -24,6 +24,12 @@
 				Blog
 			</a>
 			<a
+				href="/stats"
+				class="flex items-center rounded-md px-4 py-2 font-medium text-primary no-underline transition-colors hover:bg-muted"
+			>
+				Stats
+			</a>
+			<a
 				href="https://github.com/gzuuus/dvmcp"
 				target="_blank"
 				rel="noopener noreferrer"

@@ -2,6 +2,7 @@ import type { NDKEvent } from '@nostr-dev-kit/ndk';
 import { parseAnnouncementContent } from './commons';
 import type { ExtendedDVMCP } from '$lib/types';
 import type { JSONSchema7 } from 'json-schema';
+import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 
 export const parseDVMCP = async (event: NDKEvent): Promise<ExtendedDVMCP | null> => {
 	try {
@@ -65,4 +66,24 @@ export function filterOptionalParameters(
 		},
 		{} as Record<string, unknown>
 	);
+}
+
+export function createToolExecutionHash(
+	tool: Tool,
+	params: Record<string, unknown>,
+	providerPk: string
+): string {
+	const executionString = JSON.stringify({
+		toolName: tool.name,
+		toolId: tool.id || '',
+		params,
+		providerPk
+	});
+
+	let hash = 5381;
+	for (let i = 0; i < executionString.length; i++) {
+		hash = (hash << 5) + hash + executionString.charCodeAt(i);
+	}
+
+	return (hash >>> 0).toString(16);
 }

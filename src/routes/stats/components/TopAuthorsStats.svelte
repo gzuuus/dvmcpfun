@@ -5,104 +5,36 @@
 	import Spinner from '$lib/components/spinner.svelte';
 	import { toolExecutor } from '$lib/services/toolExecutor';
 	import { fetchToolById } from '$lib/queries/tools';
-	import { truncatePubkeyToNpub } from '$lib/utils';
-	import { copyToClipboard } from '$lib/utils';
+	import { truncatePubkeyToNpub, copyToClipboard, generateRandomColors } from '$lib/utils';
 	import { Chart, type ChartData, type ChartOptions } from 'chart.js/auto';
-	import { STATS_SERVER_ID } from '$lib/constants';
+	import {
+		kindOptions,
+		limitOptions,
+		statsServerId,
+		timeFilterOptions,
+		type TimeFilterValue
+	} from '../constants';
 
 	const TOOL_NAME = 'top_authors';
-
-	// Get the execution store from toolExecutor
-	const executionStore = toolExecutor.getExecutionStore(TOOL_NAME);
-
-	// Define type for time filter values
-	type TimeFilterValue = 'last_24_hours' | 'last_week' | 'last_month' | 'all_time';
-
-	// Define interface for input parameters based on JSON schema
-	interface TopAuthorsParams extends Record<string, unknown> {
-		kind?: number; // Optional event kind to filter by
-		limit: number; // Maximum number of authors to return
-		time_filter: TimeFilterValue; // Time filter to apply
-	}
-
-	let kind: number | null = $state(null);
-	let limit = $state(10);
-	let timeFilter = $state<TimeFilterValue>('last_week');
-
-	const timeFilterOptions: { value: TimeFilterValue; label: string }[] = [
-		{ value: 'last_24_hours', label: 'Last 24 Hours' },
-		{ value: 'last_week', label: 'Last Week' },
-		{ value: 'last_month', label: 'Last Month' },
-		{ value: 'all_time', label: 'All Time' }
-	];
-
-	const limitOptions: { value: string; label: string }[] = [
-		{ value: '5', label: '5 Authors' },
-		{ value: '10', label: '10 Authors' },
-		{ value: '20', label: '20 Authors' },
-		{ value: '50', label: '50 Authors' }
-	];
-
-	const kindOptions: { value: string; label: string }[] = [
-		{ value: '', label: 'All Kinds' },
-		{ value: '6910', label: 'Kind 6910' },
-		{ value: '5910', label: 'Kind 5910' },
-		{ value: '7000', label: 'Kind 7000' }
-	];
-
-	// Execute the top_authors tool
-	async function executeTopAuthorsQuery() {
-		try {
-			const server = await fetchToolById(STATS_SERVER_ID);
-			if (!server) throw new Error('Stats server not found');
-
-			const tool = server.tools.find((t) => t.name === TOOL_NAME);
-			if (!tool) throw new Error('Top authors tool not found');
-
-			// Create params object with proper typing
-			const params: TopAuthorsParams = {
-				limit: Number(limit),
-				time_filter: timeFilter
-			};
-
-			// Only add kind if it's not null
-			if (kind !== null) params.kind = kind;
-
-			await toolExecutor.executeTool(tool, params, server.event.pubkey);
-		} catch (err) {
-			console.error('Error executing top authors tool:', err);
-		}
-	}
-
-	function handleKindChange(event: Event) {
-		kind = (event.target as HTMLSelectElement).value
-			? Number((event.target as HTMLSelectElement).value)
-			: null;
-		executeTopAuthorsQuery();
-	}
-
-	function handleLimitChange(event: Event) {
-		limit = Number((event.target as HTMLSelectElement).value || '10');
-		executeTopAuthorsQuery();
-	}
-
-	function handleTimeFilterChange(event: Event) {
-		timeFilter = ((event.target as HTMLSelectElement).value || 'last_week') as TimeFilterValue;
-		executeTopAuthorsQuery();
-	}
-
-	onMount(() => {
-		executeTopAuthorsQuery();
-	});
-
-	onDestroy(() => {
-		toolExecutor.resetExecutionState(TOOL_NAME);
-	});
 
 	interface AuthorData {
 		pubkey: string;
 		count: number;
 	}
+
+	interface TopAuthorsParams extends Record<string, unknown> {
+		kind?: number;
+		limit: number;
+		time_filter: TimeFilterValue;
+	}
+
+	const executionStore = toolExecutor.getExecutionStore(TOOL_NAME);
+	let kind = $state<number | null>(null);
+	let limit = $state(10);
+	let timeFilter = $state<TimeFilterValue>('last_week');
+	let activeTab = $state('chart');
+	let chartCanvas = $state<HTMLCanvasElement | null>(null);
+	let chart = $state<Chart | null>(null);
 
 	let parsedResult = $derived(
 		$executionStore.status === 'success' && $executionStore.result
@@ -111,38 +43,20 @@
 	);
 
 	let isLoading = $derived($executionStore.status === 'loading');
-	let chartCanvas: HTMLCanvasElement | null = $state(null);
-	let chart: Chart | null = $state(null);
-	let activeTab = $state('chart');
 
-	let chartData = $derived({
-		labels: parsedResult.map((author) => truncatePubkeyToNpub(author.pubkey)),
-		datasets: [
-			{
-				label: 'Event Count',
-				data: parsedResult.map((author) => author.count),
-				backgroundColor: [
-					'rgba(54, 162, 235, 0.6)',
-					'rgba(255, 99, 132, 0.6)',
-					'rgba(75, 192, 192, 0.6)',
-					'rgba(255, 206, 86, 0.6)',
-					'rgba(153, 102, 255, 0.6)',
-					'rgba(255, 159, 64, 0.6)',
-					'rgba(199, 199, 199, 0.6)'
-				],
-				borderColor: [
-					'rgba(54, 162, 235, 1)',
-					'rgba(255, 99, 132, 1)',
-					'rgba(75, 192, 192, 1)',
-					'rgba(255, 206, 86, 1)',
-					'rgba(153, 102, 255, 1)',
-					'rgba(255, 159, 64, 1)',
-					'rgba(199, 199, 199, 1)'
-				],
-				borderWidth: 1
-			}
-		]
-	} as ChartData);
+	function getChartData(): ChartData {
+		return {
+			labels: parsedResult.map((author) => truncatePubkeyToNpub(author.pubkey)),
+			datasets: [
+				{
+					label: 'Event Count',
+					data: parsedResult.map((author) => author.count),
+					backgroundColor: generateRandomColors(parsedResult.length),
+					borderWidth: 1
+				}
+			]
+		};
+	}
 
 	const chartOptions: ChartOptions = {
 		responsive: true,
@@ -177,35 +91,70 @@
 	};
 
 	function initOrUpdateChart() {
-		// Only proceed if we have a canvas and data
 		if (!chartCanvas || parsedResult.length === 0) return;
 
-		// If chart exists, destroy it first to prevent memory leaks
 		if (chart) {
 			chart.destroy();
 			chart = null;
 		}
 
-		// Create a new chart
 		chart = new Chart(chartCanvas, {
 			type: 'bar',
-			data: chartData,
+			data: getChartData(),
 			options: chartOptions
 		});
 	}
 
+	function handleKindChange(event: Event) {
+		kind = (event.target as HTMLSelectElement).value
+			? Number((event.target as HTMLSelectElement).value)
+			: null;
+		executeTopAuthorsQuery();
+	}
+
+	function handleLimitChange(event: Event) {
+		limit = Number((event.target as HTMLSelectElement).value || '10');
+		executeTopAuthorsQuery();
+	}
+
+	function handleTimeFilterChange(event: Event) {
+		timeFilter = ((event.target as HTMLSelectElement).value || 'last_week') as TimeFilterValue;
+		executeTopAuthorsQuery();
+	}
+
+	function handleTabChange(value: string) {
+		activeTab = value;
+	}
+
+	async function executeTopAuthorsQuery() {
+		try {
+			const server = await fetchToolById(statsServerId);
+			if (!server) throw new Error('Stats server not found');
+
+			const tool = server.tools.find((t) => t.name === TOOL_NAME);
+			if (!tool) throw new Error('Top authors tool not found');
+
+			const params: TopAuthorsParams = {
+				limit: Number(limit),
+				time_filter: timeFilter
+			};
+
+			if (kind !== null) params.kind = kind;
+
+			await toolExecutor.executeTool(tool, params, server.event.pubkey);
+		} catch (err) {
+			console.error('Error executing top authors tool:', err);
+		}
+	}
+
 	$effect(() => {
-		// When parsedResult or chartCanvas changes, and we're on the chart tab
-		if (activeTab === 'chart' && chartCanvas && parsedResult && parsedResult.length > 0) {
-			// Use setTimeout to ensure DOM is fully updated
+		if (activeTab === 'chart' && chartCanvas && parsedResult.length > 0) {
 			setTimeout(() => initOrUpdateChart(), 0);
 		}
 	});
 
-	$effect(() => {
-		if (activeTab === 'chart' && chartCanvas && parsedResult && parsedResult.length > 0 && !chart) {
-			setTimeout(() => initOrUpdateChart(), 0);
-		}
+	onMount(() => {
+		executeTopAuthorsQuery();
 	});
 
 	onDestroy(() => {
@@ -215,21 +164,12 @@
 		}
 		toolExecutor.resetExecutionState(TOOL_NAME);
 	});
-
-	function handleTabChange(value: string) {
-		activeTab = value;
-	}
-
-	$effect(() => {
-		console.log($executionStore);
-	});
 </script>
 
 <div class="space-y-6">
 	<div class="rounded-lg border border-primary/20 bg-background p-4">
 		<h2 class="mb-4 text-xl font-semibold text-primary">Top Authors</h2>
 
-		<!-- Filters -->
 		<div class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
 			<div>
 				<label for="kind" class="mb-2 block text-sm font-medium text-foreground">Event Kind</label>
@@ -276,7 +216,6 @@
 			</div>
 		</div>
 
-		<!-- Results -->
 		{#if $executionStore.status === 'error' && $executionStore.error}
 			<Alert.Root
 				class="border-red-500/40 bg-red-500/15 shadow-md dark:border-red-400/30 dark:bg-red-900/30"

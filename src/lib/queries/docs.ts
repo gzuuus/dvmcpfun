@@ -4,7 +4,7 @@ import { docsKeys } from './queryKeyFactory';
 import { createQuery } from '@tanstack/svelte-query';
 import ndkStore from '$lib/stores/nostr';
 import { get } from 'svelte/store';
-import { dvmcpPubkey } from '$lib/constants';
+import { statsDvmcpPubkey } from '../../routes/stats/constants';
 
 export type NostrArticle = {
 	id: string;
@@ -50,7 +50,7 @@ const transformEvent = (event: NDKEvent): NostrArticle => {
 export const fetchArticles = async () => {
 	const filter: NDKFilter = {
 		kinds: [30023], // kind 30023 is long-form content
-		authors: [dvmcpPubkey]
+		authors: [statsDvmcpPubkey]
 	};
 
 	const events = await get(ndkStore).fetchEvents(filter);

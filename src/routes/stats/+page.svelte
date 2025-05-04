@@ -2,7 +2,9 @@
 	import { setThemeContext } from '@sjsf/shadcn-theme';
 	import { components } from '@sjsf/shadcn-theme/default';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
-	import TopAuthorsStats from './components/TopAuthorsStats.svelte';
+	import TopAuthorsStats from '$lib/components/stats/TopAuthorsStats.svelte';
+	import EventCountsByKindStats from '$lib/components/stats/EventCountsByKindStats.svelte';
+	import EventCountsByTimeStats from '$lib/components/stats/EventCountsByTimeStats.svelte';
 
 	setThemeContext({ components });
 </script>
@@ -23,21 +25,17 @@
 		<Tabs.Root value="top-authors">
 			<Tabs.List>
 				<Tabs.Trigger value="top-authors">Top Authors</Tabs.Trigger>
-				<Tabs.Trigger value="event-counts">Event Counts</Tabs.Trigger>
-				<Tabs.Trigger value="relay-stats">Relay Stats</Tabs.Trigger>
+				<Tabs.Trigger value="event-counts-kind">Events by Kind</Tabs.Trigger>
+				<Tabs.Trigger value="event-counts-time">Events Over Time</Tabs.Trigger>
 			</Tabs.List>
 			<Tabs.Content value="top-authors" class="pt-4">
 				<TopAuthorsStats />
 			</Tabs.Content>
-			<Tabs.Content value="event-counts" class="pt-4">
-				<div class="rounded-lg border border-primary/20 bg-background p-4">
-					<p class="text-foreground/80">Event counts by kind will be implemented soon.</p>
-				</div>
+			<Tabs.Content value="event-counts-kind" class="pt-4">
+				<EventCountsByKindStats />
 			</Tabs.Content>
-			<Tabs.Content value="relay-stats" class="pt-4">
-				<div class="rounded-lg border border-primary/20 bg-background p-4">
-					<p class="text-foreground/80">Relay statistics will be implemented soon.</p>
-				</div>
+			<Tabs.Content value="event-counts-time" class="pt-4">
+				<EventCountsByTimeStats />
 			</Tabs.Content>
 		</Tabs.Root>
 	</div>

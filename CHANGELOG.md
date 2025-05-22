@@ -1,5 +1,11 @@
 # dvmcpfun
 
+## 0.0.4
+
+### Patch Changes
+
+- 641b0f4: Stats page, change 'parameter' label to 'arguments' matching protocol spec
+
 ## 0.0.3
 
 ### Patch Changes

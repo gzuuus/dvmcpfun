@@ -9,7 +9,7 @@ import { statsServerId } from '../../routes/stats/constants'; // Adjust path as 
  * Handles basic error reporting to the console.
  *
  * @param toolName The name of the specific stats tool to execute.
- * @param params The parameters for the tool execution.
+ * @param params The arguments for the tool execution.
  * @returns The fetched Tool object if successful, otherwise undefined.
  */
 export async function executeStatQuery(

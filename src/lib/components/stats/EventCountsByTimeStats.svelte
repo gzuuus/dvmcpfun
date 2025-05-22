@@ -21,7 +21,7 @@
 
 	let kind = $state<number | null>(null);
 	let interval = $state<string>('day');
-	let limit = $state<number>(5);
+	let limit = $state<number>(50);
 
 	function mapAndSortData(
 		parsedData: TimeData[],

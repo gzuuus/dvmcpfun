@@ -71,3 +71,14 @@ export function slugify(text: string): string {
 		.replace(/[\s-]+/g, '-') // Replace spaces and dashes with a single dash
 		.replace(/^-+|-+$/g, ''); // Trim dashes from the beginning and the end
 }
+
+export function generateRandomColors(count: number) {
+	const colors = [];
+	for (let i = 0; i < count; i++) {
+		const r = Math.floor(Math.random() * 200) + 55;
+		const g = Math.floor(Math.random() * 200) + 55;
+		const b = Math.floor(Math.random() * 200) + 55;
+		colors.push(`rgba(${r}, ${g}, ${b}, 0.6)`);
+	}
+	return colors;
+}

@@ -14,8 +14,7 @@ export const explicitRelayUrls = [
 	// 'ws://localhost:10547'
 ];
 export const ndk: NDK = new NDK({
-	explicitRelayUrls,
-	autoConnectUserRelays: true
+	explicitRelayUrls
 	// cacheAdapter,
 });
 

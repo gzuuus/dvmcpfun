@@ -62,7 +62,7 @@
 		const filteredParams = filterOptionalParameters(formValue, tool.inputSchema as JSONSchema7);
 		return JSON.stringify({
 			name: tool.name,
-			parameters: filteredParams
+			arguments: filteredParams
 		});
 	};
 

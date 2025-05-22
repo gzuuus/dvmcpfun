@@ -3,8 +3,10 @@ import type { NDKFilter } from '@nostr-dev-kit/ndk';
 import ndkStore from '$lib/stores/nostr';
 import { toolKeys } from './queryKeyFactory';
 import { createQuery } from '@tanstack/svelte-query';
-import { parseDVMCP } from '$lib/utils/tools';
+import { parseDVMCP, createToolExecutionHash } from '$lib/utils/tools';
 import { get } from 'svelte/store';
+import { queryClient } from './queryClient';
+import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 
 export const fetchDVMCPs = async () => {
 	const filter: NDKFilter = {
@@ -87,4 +89,23 @@ export const createDVMCPQuery = (id: string) => {
 		queryFn: () => fetchToolById(id),
 		enabled: !!id
 	});
+};
+
+export const getCachedToolExecution = (
+	tool: Tool,
+	params: Record<string, unknown>,
+	providerPk: string
+): unknown | undefined => {
+	const executionHash = createToolExecutionHash(tool, params, providerPk);
+	return queryClient.getQueryData(toolKeys.execution(executionHash));
+};
+
+export const setCachedToolExecution = (
+	tool: Tool,
+	params: Record<string, unknown>,
+	providerPk: string,
+	result: unknown
+): void => {
+	const executionHash = createToolExecutionHash(tool, params, providerPk);
+	queryClient.setQueryData(toolKeys.execution(executionHash), result);
 };

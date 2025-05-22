@@ -9,6 +9,7 @@ import { setupNDKSigner } from '$lib/stores/login';
 import { filterOptionalParameters } from '$lib/utils/tools';
 import type { JSONSchema7 } from 'json-schema';
 import type { PaymentInfo } from '$lib/types';
+import { getCachedToolExecution, setCachedToolExecution } from '$lib/queries/tools';
 
 export type ExecutionStatus = 'idle' | 'loading' | 'success' | 'error' | 'payment-required';
 
@@ -50,11 +51,29 @@ export class ToolExecutor {
 	): Promise<unknown> {
 		const executionStore = this.getExecutionStore(tool.name);
 
+		const cachedResult = getCachedToolExecution(tool, params, providerPk);
+		if (cachedResult !== undefined) {
+			console.log(`Using cached result for tool ${tool.name}`);
+			executionStore.update((state) => ({
+				...state,
+				status: 'success',
+				result: cachedResult,
+				error: null
+			}));
+			return cachedResult;
+		}
+
 		executionStore.update((state) => ({ ...state, status: 'loading', result: null, error: null }));
 
 		try {
 			const result = await this.executeToolInternal(tool, params, providerPk);
+
+			// Update the execution store with the result
 			executionStore.update((state) => ({ ...state, status: 'success', result, error: null }));
+
+			// Cache the result for future use
+			setCachedToolExecution(tool, params, providerPk, result);
+
 			return result;
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : String(error);
@@ -188,7 +207,6 @@ export class ToolExecutor {
 		const request = new NDKEvent(get(ndkStore));
 		request.kind = TOOL_REQUEST_KIND;
 
-		// Filter parameters and create request content
 		const filteredParams = filterOptionalParameters(params, tool.inputSchema as JSONSchema7);
 		request.content = JSON.stringify({
 			name: tool.name,
@@ -197,7 +215,7 @@ export class ToolExecutor {
 
 		request.tags.push(['c', 'execute-tool']);
 		request.tags.push(['p', provider]);
-		// Sign the event
+
 		if (!get(ndkStore).signer) {
 			await setupNDKSigner(new NDKPrivateKeySigner(generateSecretKey()));
 		}

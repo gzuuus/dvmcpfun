@@ -1,7 +1,7 @@
-import { fetchToolById } from '$lib/queries/tools';
 import { toolExecutor } from '$lib/services/toolExecutor';
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { statsServerId } from '../../routes/stats/constants'; // Adjust path as needed after file creation
+import { fetchToolsListByServerId } from '$lib/queries/servers';
 
 /**
  * Executes a stats query using the predefined stats server ID.
@@ -17,17 +17,18 @@ export async function executeStatQuery(
 	params: Record<string, unknown>
 ): Promise<Tool | undefined> {
 	try {
-		const server = await fetchToolById(statsServerId);
-		if (!server) {
+		const toolsList = await fetchToolsListByServerId(statsServerId);
+		if (!toolsList) {
 			throw new Error(`Stats server '${statsServerId}' not found`);
 		}
 
-		const tool = server.tools.find((t) => t.name === toolName);
+		const tool = toolsList.tools.find((t) => t.name === toolName);
 		if (!tool) {
 			throw new Error(`Tool '${toolName}' not found on server '${statsServerId}'`);
 		}
 
-		await toolExecutor.executeTool(tool, params, server.event.pubkey);
+		// Execute the tool with provider pubkey and server ID from the ToolsListWithProvider
+		await toolExecutor.executeTool(tool, params, toolsList.providerPubkey, toolsList.serverId);
 		return tool; // Return the tool object which includes the description
 	} catch (err) {
 		console.error(`Error executing stats query for tool '${toolName}':`, err);

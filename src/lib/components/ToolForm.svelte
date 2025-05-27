@@ -5,20 +5,22 @@
 	import type { FormOptions, UiSchemaRoot } from '@sjsf/form';
 	import { onDestroy } from 'svelte';
 	import { toolExecutor } from '$lib/services/toolExecutor';
-	import type { ExtendedDVMCP } from '$lib/types';
 	import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import * as Alert from '$lib/components/ui/alert/index.js';
 	import type { JSONSchema7 } from 'json-schema';
-	import { filterOptionalParameters } from '$lib/utils/tools';
 	import { copyToClipboard } from '$lib/utils';
 	import qrcode from 'qrcode-generator';
 	import { validator } from '../../routes/dvm/[identifier]/_validator';
 	import { onSubmit } from '../../routes/dvm/[identifier]/_on-submit';
 	import Spinner from './spinner.svelte';
+	import { filterOptionalParameters } from '$lib/utils/commons';
+	import type { CapPricing } from '$lib/types';
 
-	export let provider: ExtendedDVMCP;
+	export let provider: { providerPubkey: string; serverId: string };
 	export let tool: Tool;
+	// Optional pricing information
+	export let pricing: CapPricing | undefined = undefined;
 
 	let uiSchema: UiSchemaRoot = {
 		submitButton: {
@@ -40,7 +42,7 @@
 
 	const executionStore = toolExecutor.getExecutionStore(tool.name);
 
-	$: toolPricing = provider.toolPricing?.get(tool.name);
+	// Pricing is now passed as a prop
 
 	$: copyInvoice = () => {
 		if ($executionStore.paymentInfo?.invoice) {
@@ -72,13 +74,13 @@
 </script>
 
 <div class="space-y-4">
-	{#if toolPricing}
+	{#if pricing && pricing.price && pricing.unit}
 		<div class="mb-2 flex items-center gap-2">
 			<span
 				class="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary shadow-sm dark:bg-primary dark:text-primary-foreground"
 			>
-				Price: {toolPricing.price}
-				{toolPricing.unit}
+				Price: {pricing.price}
+				{pricing.unit}
 			</span>
 		</div>
 	{/if}
@@ -91,7 +93,7 @@
 			uiSchema,
 			validator,
 			translation,
-			onSubmit: (value) => onSubmit(value, tool, provider.event.pubkey)
+			onSubmit: (value) => onSubmit(value, tool, provider.providerPubkey, provider.serverId)
 		})}
 		{#if createdForm}
 			<div class="space-y-4">
@@ -196,7 +198,26 @@
 									<button
 										class="inline-flex h-9 items-center justify-center whitespace-nowrap rounded-md border border-green-500/40 bg-background px-3 text-sm font-medium text-green-700 shadow-sm ring-offset-background transition-colors hover:bg-green-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 dark:border-green-400/30 dark:text-green-300 dark:hover:bg-green-900/20"
 										on:click={() => {
-											copyToClipboard($executionStore.result[0].text);
+											// Handle different possible result formats
+											const result = $executionStore.result;
+											let textToCopy = '';
+
+											if (Array.isArray(result) && result.length > 0) {
+												// Format: [{type: 'text', text: '...'}]
+												if (result[0].text) {
+													textToCopy = result[0].text;
+												} else {
+													textToCopy = JSON.stringify(result[0]);
+												}
+											} else if (typeof result === 'string') {
+												// Plain string result
+												textToCopy = result;
+											} else {
+												// Fallback for other formats
+												textToCopy = JSON.stringify(result);
+											}
+
+											copyToClipboard(textToCopy);
 										}}
 									>
 										Copy Result
@@ -204,13 +225,27 @@
 								</div>
 								<div class="max-h-[800px] overflow-auto">
 									<div class="w-full min-w-0">
-										{#each $executionStore.result as result}
+										{#if Array.isArray($executionStore.result)}
+											{#each $executionStore.result as result}
+												<p
+													class="whitespace-pre-wrap break-all text-xl font-bold text-green-700 dark:text-green-200"
+												>
+													{result.type === 'text' ? result.text : JSON.stringify(result)}
+												</p>
+											{/each}
+										{:else if typeof $executionStore.result === 'string'}
 											<p
 												class="whitespace-pre-wrap break-all text-xl font-bold text-green-700 dark:text-green-200"
 											>
-												{result.text}
+												{$executionStore.result}
 											</p>
-										{/each}
+										{:else}
+											<p
+												class="whitespace-pre-wrap break-all text-xl font-bold text-green-700 dark:text-green-200"
+											>
+												{JSON.stringify($executionStore.result, null, 2)}
+											</p>
+										{/if}
 									</div>
 								</div>
 							</div>

@@ -2,15 +2,20 @@ import { NDKEvent, type NDKSubscription } from '@nostr-dev-kit/ndk';
 import { NDKPrivateKeySigner } from '@nostr-dev-kit/ndk';
 import { generateSecretKey } from 'nostr-tools';
 import { get, writable, type Writable } from 'svelte/store';
-import { DVM_NOTICE_KIND, TOOL_REQUEST_KIND, TOOL_RESPONSE_KIND } from '$lib/constants';
 import ndkStore from '$lib/stores/nostr';
-import type { Tool } from '@modelcontextprotocol/sdk/types.js';
+import type { CallToolRequest, Tool } from '@modelcontextprotocol/sdk/types.js';
 import { setupNDKSigner } from '$lib/stores/login';
-import { filterOptionalParameters } from '$lib/utils/tools';
 import type { JSONSchema7 } from 'json-schema';
 import type { PaymentInfo } from '$lib/types';
-import { getCachedToolExecution, setCachedToolExecution } from '$lib/queries/tools';
-
+import {
+	NOTIFICATION_KIND,
+	REQUEST_KIND,
+	RESPONSE_KIND,
+	TAG_METHOD,
+	TAG_PUBKEY,
+	TAG_SERVER_IDENTIFIER
+} from '@dvmcp/commons/core';
+import { filterOptionalParameters } from '$lib/utils/commons';
 export type ExecutionStatus = 'idle' | 'loading' | 'success' | 'error' | 'payment-required';
 
 export interface ToolExecutionState {
@@ -47,32 +52,33 @@ export class ToolExecutor {
 	public async executeTool(
 		tool: Tool,
 		params: Record<string, unknown>,
-		providerPk: string
+		providerPk: string,
+		serverId?: string
 	): Promise<unknown> {
 		const executionStore = this.getExecutionStore(tool.name);
 
-		const cachedResult = getCachedToolExecution(tool, params, providerPk);
-		if (cachedResult !== undefined) {
-			console.log(`Using cached result for tool ${tool.name}`);
-			executionStore.update((state) => ({
-				...state,
-				status: 'success',
-				result: cachedResult,
-				error: null
-			}));
-			return cachedResult;
-		}
+		// const cachedResult = getCachedToolExecution(tool, params, providerPk);
+		// if (cachedResult !== undefined) {
+		// 	console.log(`Using cached result for tool ${tool.name}`);
+		// 	executionStore.update((state) => ({
+		// 		...state,
+		// 		status: 'success',
+		// 		result: cachedResult,
+		// 		error: null
+		// 	}));
+		// 	return cachedResult;
+		// }
 
 		executionStore.update((state) => ({ ...state, status: 'loading', result: null, error: null }));
 
 		try {
-			const result = await this.executeToolInternal(tool, params, providerPk);
+			const result = await this.executeToolInternal(tool, params, providerPk, serverId);
 
 			// Update the execution store with the result
 			executionStore.update((state) => ({ ...state, status: 'success', result, error: null }));
 
 			// Cache the result for future use
-			setCachedToolExecution(tool, params, providerPk, result);
+			// setCachedToolExecution(tool, params, providerPk, result);
 
 			return result;
 		} catch (error) {
@@ -100,11 +106,13 @@ export class ToolExecutor {
 	private async executeToolInternal(
 		tool: Tool,
 		params: Record<string, unknown>,
-		providerPk: string
+		providerPk: string,
+		serverId?: string
 	): Promise<unknown> {
 		return new Promise(async (resolve, reject) => {
 			try {
-				const requestEvent = await this.createToolRequest(tool, params, providerPk);
+				// Create the request event first but don't publish it yet
+				const requestEvent = await this.createToolRequest(tool, params, providerPk, serverId);
 				const executionId = requestEvent.id;
 				const executionStore = this.getExecutionStore(tool.name);
 
@@ -113,11 +121,17 @@ export class ToolExecutor {
 					this.cleanupExecution(executionId);
 				}, ToolExecutor.EXECUTION_TIMEOUT);
 
+				// Log the subscription filter for debugging
+				console.log('Subscribing to tool response with filter:', {
+					kinds: [RESPONSE_KIND as number, NOTIFICATION_KIND],
+					'#e': [executionId]
+				});
+
+				// Set up subscription BEFORE publishing the request
 				const subscription = get(ndkStore).subscribe(
 					[
 						{
-							kinds: [TOOL_RESPONSE_KIND, DVM_NOTICE_KIND],
-							since: Math.floor(Date.now() / 1000),
+							kinds: [RESPONSE_KIND as number, NOTIFICATION_KIND],
 							'#e': [executionId]
 						}
 					],
@@ -125,18 +139,35 @@ export class ToolExecutor {
 				);
 
 				subscription.on('event', async (event: NDKEvent) => {
-					if (event.kind === TOOL_RESPONSE_KIND) {
+					// Log the received event for debugging
+					console.log('Received event in tool executor:', {
+						kind: event.kind,
+						id: event.id,
+						content: event.content.substring(0, 100) + (event.content.length > 100 ? '...' : '')
+					});
+
+					if (event.kind === RESPONSE_KIND) {
 						try {
 							const result = JSON.parse(event.content);
+							console.log('Parsed response result:', result);
 							clearTimeout(timeoutId);
 							this.cleanupExecution(executionId);
-							resolve(result.content);
+
+							// Handle the response format from the logs
+							// The response has a format like: {"content":[{"type":"text","text":"The sum of 1 and 2 is 3."}]}
+							if (result && result.content) {
+								resolve(result.content);
+							} else {
+								console.warn('Response has unexpected format:', result);
+								resolve(result); // Fallback to returning the entire result
+							}
 						} catch (error) {
+							console.error('Error parsing response content:', error);
 							clearTimeout(timeoutId);
 							this.cleanupExecution(executionId);
 							reject(error instanceof Error ? error : new Error(String(error)));
 						}
-					} else if (event.kind === DVM_NOTICE_KIND) {
+					} else if (event.kind === NOTIFICATION_KIND) {
 						const statusTag = event.tags.find((t) => t[0] === 'status');
 						if (!statusTag) return;
 
@@ -179,7 +210,15 @@ export class ToolExecutor {
 
 				this.executionSubscriptions.set(executionId, subscription);
 
+				await new Promise<void>((resolve) =>
+					subscription.on('eose', () => {
+						resolve();
+					})
+				);
+
+				console.log('Publishing request event:', executionId);
 				await requestEvent.publish();
+				console.log('Request published successfully');
 			} catch (error) {
 				reject(error);
 			}
@@ -202,19 +241,30 @@ export class ToolExecutor {
 	private async createToolRequest(
 		tool: Tool,
 		params: Record<string, unknown>,
-		provider: string
+		provider: string,
+		serverId?: string
 	): Promise<NDKEvent> {
 		const request = new NDKEvent(get(ndkStore));
-		request.kind = TOOL_REQUEST_KIND;
-
+		request.kind = REQUEST_KIND;
 		const filteredParams = filterOptionalParameters(params, tool.inputSchema as JSONSchema7);
-		request.content = JSON.stringify({
-			name: tool.name,
-			parameters: filteredParams
-		});
 
-		request.tags.push(['c', 'execute-tool']);
-		request.tags.push(['p', provider]);
+		const requestContent: CallToolRequest = {
+			method: 'tools/call',
+			params: {
+				name: tool.name,
+				arguments: filteredParams
+			}
+		};
+
+		request.content = JSON.stringify(requestContent);
+
+		request.tags.push([TAG_METHOD, requestContent.method]);
+		request.tags.push([TAG_PUBKEY, provider]);
+
+		// Add server ID tag if provided
+		if (serverId) {
+			request.tags.push([TAG_SERVER_IDENTIFIER, serverId]);
+		}
 
 		if (!get(ndkStore).signer) {
 			await setupNDKSigner(new NDKPrivateKeySigner(generateSecretKey()));

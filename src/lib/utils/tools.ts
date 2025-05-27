@@ -1,40 +1,24 @@
 import type { NDKEvent } from '@nostr-dev-kit/ndk';
 import { parseAnnouncementContent } from './commons';
-import type { ExtendedDVMCP } from '$lib/types';
+import type { CapPricing, ProviderServerMeta, ToolsList } from '$lib/types';
 import type { JSONSchema7 } from 'json-schema';
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
+import { TAG_SERVER_IDENTIFIER, TAG_CAPABILITY } from '@dvmcp/commons/core';
 
-export const parseDVMCP = async (event: NDKEvent): Promise<ExtendedDVMCP | null> => {
+export type ToolWithMeta = { tool: Tool; meta: ProviderServerMeta };
+
+// Parse a single tool from an event
+export const parseTool = async (event: NDKEvent): Promise<ToolWithMeta | null> => {
 	try {
-		const parsedContent = parseAnnouncementContent(event.content);
-		if (!parsedContent?.name || !parsedContent.tools.length) return null;
-		const nostrEvent = await event.toNostrEvent();
-		const capabilities = event.tags.filter((tag) => tag[0] === 'capabilities').map((tag) => tag[1]);
-		const toolNames = event.tags.filter((tag) => tag[0] === 't').map((tag) => tag[1]);
-
-		const toolPricing = new Map();
-		event.tags
-			.filter((tag) => tag[0] === 't' && tag.length >= 3)
-			.forEach((tag) => {
-				const toolName = tag[1];
-				const price = tag[2];
-				const unit = tag.length >= 4 ? tag[3] : 'sats';
-
-				if (price) {
-					toolPricing.set(toolName, { price, unit });
-				}
-			});
+		const parsedContent = parseAnnouncementContent<Tool>(event.content);
+		if (!parsedContent) return null;
+		const serverId = event.tags.find((tag) => tag[0] === TAG_SERVER_IDENTIFIER)?.[1];
 		return {
-			name: parsedContent?.name,
-			picture: parsedContent.picture,
-			website: parsedContent.website,
-			banner: parsedContent.banner,
-			about: parsedContent?.about,
-			tools: parsedContent?.tools,
-			event: nostrEvent,
-			capabilities,
-			toolNames,
-			toolPricing: toolPricing.size > 0 ? toolPricing : undefined
+			tool: parsedContent,
+			meta: {
+				serverId,
+				providerPubkey: event.pubkey
+			}
 		};
 	} catch (error) {
 		console.error(error);
@@ -42,31 +26,41 @@ export const parseDVMCP = async (event: NDKEvent): Promise<ExtendedDVMCP | null>
 	}
 };
 
-export function filterOptionalParameters(
-	params: Record<string, unknown> | undefined,
-	schema: JSONSchema7
-): Record<string, unknown> {
-	const requiredParams = (schema.required || []) as string[];
+/**
+ * Parse a tools list event (kind 31317)
+ * According to the new DVMCP spec, tools list events contain:
+ * - A list of tools in the content
+ * - Pricing information in the cap tags
+ *
+ * @param event The tools list event
+ * @returns A ToolsList object or null if parsing fails
+ */
+export const parseToolsList = (event: NDKEvent): ToolsList | null => {
+	try {
+		const parsedContent = parseAnnouncementContent<{ tools: Tool[] }>(event.content);
+		if (!parsedContent || !parsedContent.tools) return null;
 
-	return Object.entries(params || {}).reduce(
-		(acc, [key, value]) => {
-			if (requiredParams.includes(key)) {
-				acc[key] = value;
-				return acc;
-			}
-
-			if (Array.isArray(value)) {
-				if (value.length > 0) {
-					acc[key] = value;
+		// Extract tool pricing information from cap tags
+		const toolsPricing = new Map<string, CapPricing>();
+		event.tags
+			.filter((tag) => tag[0] === TAG_CAPABILITY && tag.length >= 4)
+			.forEach((tag) => {
+				const [_, toolName, price, unit] = tag;
+				if (toolName && price && unit) {
+					toolsPricing.set(toolName, { price, unit });
 				}
-			} else if (value !== undefined && value !== null && value !== '') {
-				acc[key] = value;
-			}
-			return acc;
-		},
-		{} as Record<string, unknown>
-	);
-}
+			});
+
+		// Return the tools list with pricing information
+		return {
+			tools: parsedContent.tools,
+			toolsPricing
+		};
+	} catch (error) {
+		console.error('Error parsing tools list:', error);
+		return null;
+	}
+};
 
 export function createToolExecutionHash(
 	tool: Tool,

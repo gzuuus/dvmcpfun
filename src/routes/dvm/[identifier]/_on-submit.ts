@@ -1,4 +1,4 @@
-import { toolExecutor } from '$lib/services/toolExecutor';
+import { capabilityExecutor } from '$lib/services/capabilityExecutor';
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 
 export const onSubmit = async (
@@ -9,7 +9,7 @@ export const onSubmit = async (
 ) => {
 	try {
 		console.log('Executing tool:', tool.name, 'with arguments:', value);
-		const result = await toolExecutor.executeTool(tool, value, providerPk, serverId);
+		const result = await capabilityExecutor.executeTool(tool, value, providerPk, serverId);
 		return result;
 	} catch (error) {
 		console.error('Tool execution failed:', error);

@@ -3,16 +3,21 @@
 	import { setThemeContext } from '@sjsf/shadcn-theme';
 	import { components } from '@sjsf/shadcn-theme/default';
 	import ToolForm from '$lib/components/ToolForm.svelte';
+	import ResourceForm from '$lib/components/ResourceForm.svelte';
+	import PromptForm from '$lib/components/PromptForm.svelte';
 	import * as Accordion from '$lib/components/ui/accordion/index.js';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import { nip19 } from 'nostr-tools';
-	import ndkStore from '$lib/stores/nostr';
-	import type { NDKTag, NostrEvent } from '@nostr-dev-kit/ndk';
 	import { copyToClipboard, slugify } from '$lib/utils';
 	import { createAuthorQuery } from '$lib/queries/authors';
 	import AuthorCard from '$lib/components/authorCard.svelte';
 	import { getHexColorFingerprintFromHexPubkey } from '$lib/utils/commons';
-	import { createServerQuery, createToolsListQuery } from '$lib/queries/servers';
+	import {
+		createServerQuery,
+		createToolsListQuery,
+		createResourcesListQuery,
+		createPromptsListQuery
+	} from '$lib/queries/servers';
 	import Spinner from '$lib/components/spinner.svelte';
 
 	// Import the new dedicated capability components
@@ -47,9 +52,17 @@
 	// Fetch server details
 	const serverQuery = createServerQuery(page.params.identifier);
 
-	// Fetch tools list for pricing information
+	// Fetch capabilities lists for pricing information
 	$: toolsListQuery = $serverQuery.data?.meta.serverId
 		? createToolsListQuery($serverQuery.data.meta.serverId)
+		: undefined;
+
+	$: resourcesListQuery = $serverQuery.data?.meta.serverId
+		? createResourcesListQuery($serverQuery.data.meta.serverId)
+		: undefined;
+
+	$: promptsListQuery = $serverQuery.data?.meta.serverId
+		? createPromptsListQuery($serverQuery.data.meta.serverId)
 		: undefined;
 
 	// State for selected capabilities
@@ -239,19 +252,13 @@
 										{#if selectedResource.description}
 											<p class="mb-4 text-foreground">{selectedResource.description}</p>
 										{/if}
-										<div class="rounded-lg border border-primary/20 bg-background p-4">
-											<h3 class="mb-2 text-lg font-medium text-primary">Resource Details</h3>
-											<p class="mb-2 text-foreground">
-												<span class="font-medium">URI:</span>
-												{selectedResource.uri}
-											</p>
-											{#if selectedResource.mimeType}
-												<p class="text-foreground">
-													<span class="font-medium">MIME Type:</span>
-													{selectedResource.mimeType}
-												</p>
-											{/if}
-										</div>
+										<ResourceForm
+											resource={selectedResource}
+											provider={{
+												providerPubkey: $serverQuery.data?.meta?.providerPubkey || '',
+												serverId: $serverQuery.data?.meta?.serverId || ''
+											}}
+										/>
 									</div>
 								{:else if selectedResourceTemplate}
 									<!-- Resource template detail view -->
@@ -283,24 +290,14 @@
 										{#if selectedPrompt.description}
 											<p class="mb-4 text-foreground">{selectedPrompt.description}</p>
 										{/if}
-										{#if selectedPrompt.arguments && selectedPrompt.arguments.length > 0}
-											<div class="rounded-lg border border-primary/20 bg-background p-4">
-												<h3 class="mb-2 text-lg font-medium text-primary">Arguments</h3>
-												<div class="space-y-2">
-													{#each selectedPrompt.arguments as arg}
-														<div class="flex items-start gap-2">
-															<span class="font-medium">{arg.name}</span>
-															{#if arg.required}
-																<span class="text-destructive">*</span>
-															{/if}
-															{#if arg.description}
-																<span class="text-foreground">- {arg.description}</span>
-															{/if}
-														</div>
-													{/each}
-												</div>
-											</div>
-										{/if}
+										<PromptForm
+											prompt={selectedPrompt}
+											provider={{
+												providerPubkey: $serverQuery.data?.meta?.providerPubkey || '',
+												serverId: $serverQuery.data?.meta?.serverId || ''
+											}}
+											pricing={$promptsListQuery?.data?.promptsPricing?.get(selectedPrompt.name)}
+										/>
 									</div>
 								{/if}
 							</div>
@@ -569,7 +566,7 @@
 							</div>
 						</div>
 					</div>
-				</Tabs.Content> -->
+				</Tabs.Content>
 			</Tabs.Root>
 			<div class="rounded-lg border border-primary/20 bg-background p-6">
 				<h2 class="mb-3 text-xl font-semibold text-primary">Try it out</h2>

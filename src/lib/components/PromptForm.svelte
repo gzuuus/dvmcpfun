@@ -1,30 +1,63 @@
 <script lang="ts">
 	import { createForm3, RawForm } from '@sjsf/form';
 	import { translation } from '@sjsf/form/translations/en';
+	import { validator } from '../../routes/dvm/[identifier]/_validator';
 	import { theme } from '@sjsf/shadcn-theme';
 	import type { FormOptions, UiSchemaRoot } from '@sjsf/form';
 	import { onDestroy } from 'svelte';
 	import { capabilityExecutor } from '$lib/services/capabilityExecutor';
-	import type { CallToolRequest, Tool } from '@modelcontextprotocol/sdk/types.js';
+	import type { GetPromptRequest, Prompt } from '@modelcontextprotocol/sdk/types.js';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import * as Alert from '$lib/components/ui/alert/index.js';
-	import type { JSONSchema7 } from 'json-schema';
 	import { copyToClipboard } from '$lib/utils';
-	import qrcode from 'qrcode-generator';
-	import { validator } from '../../routes/dvm/[identifier]/_validator';
 	import Spinner from './spinner.svelte';
-	import { filterOptionalParameters } from '$lib/utils/commons';
 	import type { CapPricing } from '$lib/types';
+	import type { JSONSchema7 } from 'json-schema';
 
 	export let provider: { providerPubkey: string; serverId: string };
-	export let tool: Tool;
-	// Optional pricing information
+	export let prompt: Prompt;
 	export let pricing: CapPricing | undefined = undefined;
+
+	// Convert prompt arguments to JSONSchema7 format
+	function convertArgumentsToSchema(
+		promptArgs: GetPromptRequest['params']['arguments']
+	): JSONSchema7 {
+		if (!promptArgs || !Array.isArray(promptArgs)) {
+			return {
+				type: 'object',
+				properties: {},
+				required: []
+			};
+		}
+
+		const properties: Record<string, any> = {};
+		const required: string[] = [];
+
+		promptArgs.forEach((arg) => {
+			if (arg.name) {
+				properties[arg.name] = {
+					type: 'string',
+					title: arg.name,
+					description: arg.description || ''
+				};
+
+				if (arg.required) {
+					required.push(arg.name);
+				}
+			}
+		});
+
+		return {
+			type: 'object',
+			properties,
+			required: required.length > 0 ? required : undefined
+		};
+	}
 
 	let uiSchema: UiSchemaRoot = {
 		submitButton: {
 			'ui:options': {
-				title: 'Execute',
+				title: 'Execute Prompt',
 				button: {
 					class:
 						'w-fit px-4 py-2 bg-primary text-background rounded-md hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed'
@@ -39,32 +72,15 @@
 	};
 	const initialValue = {};
 
-	const executionStore = capabilityExecutor.getExecutionStore(tool.name, 'tool');
-
-	// Pricing is now passed as a prop
-
-	$: copyInvoice = () => {
-		if ($executionStore.paymentInfo?.invoice) {
-			copyToClipboard($executionStore.paymentInfo.invoice);
-		}
-	};
-
-	let qrCodeSvg = '';
-	$: {
-		if ($executionStore.paymentInfo?.invoice) {
-			const qr = qrcode(0, 'L');
-			qr.addData($executionStore.paymentInfo.invoice);
-			qr.make();
-			qrCodeSvg = qr.createSvgTag({ cellSize: 4, margin: 2 });
-		}
-	}
+	// Get execution store for this prompt
+	const executionStore = capabilityExecutor.getExecutionStore(prompt.name, 'prompt');
 
 	// Handle form submission
-	async function onSubmit(value: CallToolRequest['params']['arguments']) {
+	async function onSubmit(value: GetPromptRequest['params']['arguments']) {
 		try {
-			console.log('Executing prompt:', tool.name, 'with arguments:', value);
-			await capabilityExecutor.executeTool(
-				tool,
+			console.log('Executing prompt:', prompt.name, 'with arguments:', value);
+			await capabilityExecutor.executePrompt(
+				prompt,
 				value || {},
 				provider.providerPubkey,
 				provider.serverId
@@ -74,16 +90,21 @@
 		}
 	}
 
-	$: formattedOutput = (formValue: Record<string, unknown> | undefined) => {
-		const filteredParams = filterOptionalParameters(formValue, tool.inputSchema as JSONSchema7);
-		return JSON.stringify({
-			name: tool.name,
-			arguments: filteredParams
-		});
-	};
+	// Format the form values for display
+	function formattedOutput(formValue: GetPromptRequest['params']['arguments'] | undefined) {
+		return JSON.stringify(
+			{
+				name: prompt.name,
+				arguments: formValue || {}
+			},
+			null,
+			2
+		);
+	}
 
+	// Clean up on component destroy
 	onDestroy(() => {
-		capabilityExecutor.resetExecutionState(tool.name, 'tool');
+		capabilityExecutor.resetExecutionState(prompt.name, 'prompt');
 	});
 </script>
 
@@ -99,14 +120,17 @@
 		</div>
 	{/if}
 
-	{#key tool.inputSchema}
+	{#key prompt.arguments}
+		{@const schema = convertArgumentsToSchema(
+			prompt.arguments as GetPromptRequest['params']['arguments']
+		)}
 		{@const createdForm = createForm3({
 			...theme,
 			initialValue,
-			schema: tool.inputSchema as FormOptions<string, string>['schema'],
+			schema,
 			uiSchema,
-			validator,
 			translation,
+			validator,
 			onSubmit
 		})}
 		{#if createdForm}
@@ -119,7 +143,7 @@
 							>Payment Required</Alert.Title
 						>
 						<Alert.Description class="text-amber-600 dark:text-amber-200">
-							This tool requires a payment of {$executionStore.paymentInfo.amount}
+							This prompt requires a payment of {$executionStore.paymentInfo.amount}
 							{$executionStore.paymentInfo.unit} to execute.
 						</Alert.Description>
 						<div class="mt-4 space-y-2">
@@ -127,22 +151,28 @@
 								class="rounded-lg border border-amber-500/40 bg-background p-3 shadow-sm dark:border-amber-400/30 dark:bg-background/80"
 							>
 								<div class="mb-2 flex items-center justify-between">
-									<span class="text-sm font-medium text-amber-700 dark:text-amber-300">QR Code</span
+									<span class="text-sm font-medium text-amber-700 dark:text-amber-300">Invoice</span
 									>
 									<button
 										class="inline-flex h-9 items-center justify-center whitespace-nowrap rounded-md border border-amber-500/40 bg-background px-3 text-sm font-medium text-amber-700 shadow-sm ring-offset-background transition-colors hover:bg-amber-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 dark:border-amber-400/30 dark:text-amber-300 dark:hover:bg-amber-900/20"
-										on:click={copyInvoice}
+										on:click={() => {
+											if ($executionStore.paymentInfo?.invoice) {
+												copyToClipboard($executionStore.paymentInfo.invoice);
+											}
+										}}
 									>
 										Copy Invoice
 									</button>
 								</div>
-								<div class="flex justify-center rounded-md bg-white p-4 shadow-sm">
-									{@html qrCodeSvg}
+								<div class="rounded-md bg-background/80 p-2">
+									<pre
+										class="overflow-auto text-xs text-amber-600 dark:text-amber-200">{$executionStore
+											.paymentInfo.invoice}</pre>
 								</div>
 							</div>
 
 							<p class="text-sm text-amber-600 dark:text-amber-200">
-								Pay the invoice using a Lightning wallet. The tool will automatically execute once
+								Pay the invoice using a Lightning wallet. The prompt will automatically execute once
 								payment is confirmed.
 							</p>
 						</div>
@@ -153,10 +183,10 @@
 						<Alert.Root class="flex flex-col gap-2 border-blue-500/30 bg-blue-500/10">
 							<div class="flex items-center gap-2">
 								<Spinner size={4} borderThickness={4} />
-								<Alert.Title class="m-0 text-blue-400">Executing Tool</Alert.Title>
+								<Alert.Title class="m-0 text-blue-400">Executing Prompt</Alert.Title>
 							</div>
 							<Alert.Description class="text-blue-300">
-								Please wait while the tool is being executed. This may take a few moments...
+								Please wait while the prompt is being executed. This may take a few moments...
 							</Alert.Description>
 						</Alert.Root>
 					{/if}
@@ -187,7 +217,7 @@
 		>
 			<Alert.Title class="font-semibold text-green-700 dark:text-green-300">Success</Alert.Title>
 			<Alert.Description class="text-green-600 dark:text-green-200">
-				The tool executed successfully. View the results below.
+				The prompt executed successfully. View the results below.
 			</Alert.Description>
 			<div
 				class="mt-4 rounded-lg border border-green-500/40 bg-background p-4 shadow-sm dark:border-green-400/30 dark:bg-background/80"
@@ -198,7 +228,7 @@
 							<Tabs.Trigger
 								value="result"
 								class="text-green-700 data-[state=active]:border-green-600 data-[state=active]:text-green-700 dark:text-green-300 dark:data-[state=active]:border-green-300 dark:data-[state=active]:text-primary-foreground"
-								>Tool Result</Tabs.Trigger
+								>Prompt Result</Tabs.Trigger
 							>
 							<Tabs.Trigger
 								value="raw"
@@ -212,56 +242,60 @@
 									<button
 										class="inline-flex h-9 items-center justify-center whitespace-nowrap rounded-md border border-green-500/40 bg-background px-3 text-sm font-medium text-green-700 shadow-sm ring-offset-background transition-colors hover:bg-green-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 dark:border-green-400/30 dark:text-green-300 dark:hover:bg-green-900/20"
 										on:click={() => {
-											// Handle different possible result formats
-											const result = $executionStore.result;
-											let textToCopy = '';
-
-											if (Array.isArray(result) && result.length > 0) {
-												// Format: [{type: 'text', text: '...'}]
-												if (result[0].text) {
-													textToCopy = result[0].text;
-												} else {
-													textToCopy = JSON.stringify(result[0]);
-												}
-											} else if (typeof result === 'string') {
-												// Plain string result
-												textToCopy = result;
-											} else {
-												// Fallback for other formats
-												textToCopy = JSON.stringify(result);
+											if ($executionStore.result) {
+												const content = Array.isArray($executionStore.result)
+													? $executionStore.result
+															.map(
+																(msg) => msg.content?.text || JSON.stringify(msg.content, null, 2)
+															)
+															.join('\n\n')
+													: JSON.stringify($executionStore.result, null, 2);
+												copyToClipboard(content);
 											}
-
-											copyToClipboard(textToCopy);
 										}}
 									>
-										Copy Result
+										Copy
 									</button>
 								</div>
-								<div class="max-h-[800px] overflow-auto">
-									<div class="w-full min-w-0">
-										{#if Array.isArray($executionStore.result)}
-											{#each $executionStore.result as result}
-												<p
-													class="whitespace-pre-wrap break-all text-xl font-bold text-green-700 dark:text-green-200"
-												>
-													{result.type === 'text' ? result.text : JSON.stringify(result)}
-												</p>
+								{#if $executionStore.result}
+									{#if Array.isArray($executionStore.result)}
+										<div class="space-y-4">
+											{#each $executionStore.result as message}
+												<div class="rounded-lg border border-green-500/20 p-3">
+													<div class="mb-2 font-medium text-green-700 dark:text-green-300">
+														{message.role === 'user' ? 'User' : 'Assistant'}:
+													</div>
+													{#if message.content?.type === 'text'}
+														<div class="whitespace-pre-wrap text-green-700 dark:text-green-300">
+															{message.content.text}
+														</div>
+													{:else if message.content?.type === 'image'}
+														<div>
+															<img
+																src={`data:${message.content.mimeType};base64,${message.content.data}`}
+																alt=""
+																class="max-h-96 rounded-md"
+															/>
+														</div>
+													{:else if message.content?.type === 'resource' && message.content.resource?.text}
+														<div class="whitespace-pre-wrap text-green-700 dark:text-green-300">
+															{message.content.resource.text}
+														</div>
+													{:else}
+														<pre
+															class="whitespace-pre-wrap text-sm text-green-700 dark:text-green-300">
+															{JSON.stringify(message.content, null, 2)}
+														</pre>
+													{/if}
+												</div>
 											{/each}
-										{:else if typeof $executionStore.result === 'string'}
-											<p
-												class="whitespace-pre-wrap break-all text-xl font-bold text-green-700 dark:text-green-200"
-											>
-												{$executionStore.result}
-											</p>
-										{:else}
-											<p
-												class="whitespace-pre-wrap break-all text-xl font-bold text-green-700 dark:text-green-200"
-											>
-												{JSON.stringify($executionStore.result, null, 2)}
-											</p>
-										{/if}
-									</div>
-								</div>
+										</div>
+									{:else}
+										<pre class="whitespace-pre-wrap text-sm text-green-700 dark:text-green-300">
+											{JSON.stringify($executionStore.result, null, 2)}
+										</pre>
+									{/if}
+								{/if}
 							</div>
 						</Tabs.Content>
 						<Tabs.Content value="raw">
@@ -269,18 +303,18 @@
 								<button
 									class="inline-flex h-9 items-center justify-center whitespace-nowrap rounded-md border border-green-500/40 bg-background px-3 text-sm font-medium text-green-700 shadow-sm ring-offset-background transition-colors hover:bg-green-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 dark:border-green-400/30 dark:text-green-300 dark:hover:bg-green-900/20"
 									on:click={() => {
-										copyToClipboard(JSON.stringify($executionStore.result, null, 2));
+										if ($executionStore.result) {
+											copyToClipboard(JSON.stringify($executionStore.result, null, 2));
+										}
 									}}
 								>
-									Copy Raw
+									Copy
 								</button>
 							</div>
 							<pre
-								class="mt-2 overflow-auto font-mono text-sm text-green-700/90 dark:text-green-200/90">{JSON.stringify(
-									$executionStore.result,
-									null,
-									2
-								)}</pre>
+								class="max-h-96 overflow-auto rounded-md bg-background/80 p-2 text-xs text-green-700 dark:text-green-300">
+								{JSON.stringify($executionStore.result, null, 2)}
+							</pre>
 						</Tabs.Content>
 					</Tabs.Root>
 				</div>
@@ -292,13 +326,8 @@
 		>
 			<Alert.Title class="font-semibold text-red-700 dark:text-red-300">Error</Alert.Title>
 			<Alert.Description class="text-red-600 dark:text-red-200">
-				An error occurred while executing the tool.
+				{$executionStore.error || 'An error occurred while executing the prompt.'}
 			</Alert.Description>
-			<div
-				class="mt-2 rounded-lg border border-red-500/40 bg-background/20 p-3 shadow-sm dark:border-red-400/30 dark:bg-background/10"
-			>
-				<p class="font-mono text-sm text-red-700 dark:text-red-200">{$executionStore.error}</p>
-			</div>
 		</Alert.Root>
 	{/if}
 </div>

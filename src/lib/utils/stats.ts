@@ -1,11 +1,11 @@
-import { toolExecutor } from '$lib/services/toolExecutor';
-import type { Tool } from '@modelcontextprotocol/sdk/types.js';
+import type { CallToolRequest, Tool } from '@modelcontextprotocol/sdk/types.js';
 import { statsServerId } from '../../routes/stats/constants'; // Adjust path as needed after file creation
 import { fetchToolsListByServerId } from '$lib/queries/servers';
+import { capabilityExecutor } from '$lib/services/capabilityExecutor';
 
 /**
  * Executes a stats query using the predefined stats server ID.
- * Fetches the server and tool, then executes using toolExecutor.
+ * Fetches the tool, then executes using capabilityExecutor.
  * Handles basic error reporting to the console.
  *
  * @param toolName The name of the specific stats tool to execute.
@@ -14,7 +14,7 @@ import { fetchToolsListByServerId } from '$lib/queries/servers';
  */
 export async function executeStatQuery(
 	toolName: string,
-	params: Record<string, unknown>
+	params: CallToolRequest['params']
 ): Promise<Tool | undefined> {
 	try {
 		const toolsList = await fetchToolsListByServerId(statsServerId);
@@ -28,12 +28,15 @@ export async function executeStatQuery(
 		}
 
 		// Execute the tool with provider pubkey and server ID from the ToolsListWithProvider
-		await toolExecutor.executeTool(tool, params, toolsList.providerPubkey, toolsList.serverId);
+		await capabilityExecutor.executeTool(
+			tool,
+			params,
+			toolsList.providerPubkey || '',
+			toolsList.serverId
+		);
 		return tool; // Return the tool object which includes the description
 	} catch (err) {
 		console.error(`Error executing stats query for tool '${toolName}':`, err);
-		// toolExecutor already updates the store with the error,
-		// but we might want additional global error handling here later.
 		return undefined; // Indicate failure
 	}
 }

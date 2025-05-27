@@ -3,7 +3,7 @@
 	import * as Alert from '$lib/components/ui/alert/index.js';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import Spinner from '$lib/components/spinner.svelte';
-	import { toolExecutor } from '$lib/services/toolExecutor';
+	import { capabilityExecutor } from '$lib/services/capabilityExecutor';
 	import { Chart, type ChartType } from 'chart.js/auto';
 	import { copyToClipboard } from '$lib/utils';
 
@@ -33,7 +33,7 @@
 		rawData?: (result: any[]) => any;
 	}>();
 
-	const executionStore = toolExecutor.getExecutionStore(toolName);
+	const executionStore = capabilityExecutor.getExecutionStore(toolName, 'tool');
 	let activeTab = $state(initialActiveTab);
 	let chartCanvas = $state<HTMLCanvasElement | null>(null);
 	let chart = $state<Chart | null>(null);
@@ -86,7 +86,7 @@
 			chart = null;
 		}
 
-		toolExecutor.resetExecutionState(toolName);
+		capabilityExecutor.resetExecutionState(toolName, 'tool');
 	});
 </script>
 

@@ -2,7 +2,7 @@
 	import { createAuthorQuery } from '$lib/queries/authors';
 	import AuthorCard from './authorCard.svelte';
 	import { getHexColorFingerprintFromHexPubkey } from '$lib/utils/commons';
-	import type { ServerWithMeta } from '$lib/utils/servers';
+	import type { ServerWithMeta } from '$lib/types';
 
 	export let server: ServerWithMeta;
 	const authorQuery = server.meta.providerPubkey
@@ -12,7 +12,7 @@
 
 {#if server}
 	<a
-		href="/dvm/{server.meta.serverId}"
+		href="/s/{server.meta.serverId}"
 		class="group grid grid-rows-[auto_1fr_auto] rounded-xl border border-primary/40 bg-background p-4 pt-0 no-underline transition-transform duration-200 hover:-translate-y-1 hover:border-primary/40 hover:shadow-lg"
 	>
 		<div class="mb-2 flex items-center gap-4">

@@ -5,6 +5,7 @@
 	import ToolForm from '$lib/components/ToolForm.svelte';
 	import ResourceForm from '$lib/components/ResourceForm.svelte';
 	import PromptForm from '$lib/components/PromptForm.svelte';
+	import ResourceTemplateForm from '$lib/components/ResourceTemplateForm.svelte';
 	import * as Accordion from '$lib/components/ui/accordion/index.js';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import { nip19 } from 'nostr-tools';
@@ -269,19 +270,16 @@
 										{#if selectedResourceTemplate.description}
 											<p class="mb-4 text-foreground">{selectedResourceTemplate.description}</p>
 										{/if}
-										<div class="rounded-lg border border-primary/20 bg-background p-4">
-											<h3 class="mb-2 text-lg font-medium text-primary">Template Details</h3>
-											<p class="mb-2 text-foreground">
-												<span class="font-medium">URI Template:</span>
-												{selectedResourceTemplate.uriTemplate}
-											</p>
-											{#if selectedResourceTemplate.mimeType}
-												<p class="text-foreground">
-													<span class="font-medium">MIME Type:</span>
-													{selectedResourceTemplate.mimeType}
-												</p>
-											{/if}
-										</div>
+										<ResourceTemplateForm
+											resourceTemplate={selectedResourceTemplate}
+											provider={{
+												providerPubkey: $serverQuery.data?.meta?.providerPubkey || '',
+												serverId: $serverQuery.data?.meta?.serverId || ''
+											}}
+											pricing={$resourcesListQuery?.data?.resourceTemplates?.resourceTemplatesPricing?.get(
+												selectedResourceTemplate.name
+											)}
+										/>
 									</div>
 								{:else if selectedPrompt}
 									<!-- Prompt detail view -->

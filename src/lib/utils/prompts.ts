@@ -2,7 +2,7 @@ import type { NDKEvent } from '@nostr-dev-kit/ndk';
 import { parseAnnouncementContent } from './commons';
 import type { CapPricing, PromptsList } from '$lib/types';
 import { TAG_CAPABILITY } from '@dvmcp/commons/core';
-import type { Prompt } from '@modelcontextprotocol/sdk/types.js';
+import type { ListPromptsResult } from '@modelcontextprotocol/sdk/types.js';
 
 /**
  * Parse a prompts list event (kind 31319)
@@ -15,7 +15,7 @@ import type { Prompt } from '@modelcontextprotocol/sdk/types.js';
  */
 export const parsePromptsList = (event: NDKEvent): PromptsList | null => {
 	try {
-		const parsedContent = parseAnnouncementContent<{ prompts: Prompt[] }>(event.content);
+		const parsedContent = parseAnnouncementContent<ListPromptsResult>(event.content);
 		if (!parsedContent || !parsedContent.prompts) return null;
 
 		// Extract prompt pricing information from cap tags

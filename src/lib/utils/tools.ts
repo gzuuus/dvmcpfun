@@ -1,30 +1,8 @@
 import type { NDKEvent } from '@nostr-dev-kit/ndk';
 import { parseAnnouncementContent } from './commons';
-import type { CapPricing, ProviderServerMeta, ToolsList } from '$lib/types';
-import type { JSONSchema7 } from 'json-schema';
-import type { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { TAG_SERVER_IDENTIFIER, TAG_CAPABILITY } from '@dvmcp/commons/core';
-
-export type ToolWithMeta = { tool: Tool; meta: ProviderServerMeta };
-
-// Parse a single tool from an event
-export const parseTool = async (event: NDKEvent): Promise<ToolWithMeta | null> => {
-	try {
-		const parsedContent = parseAnnouncementContent<Tool>(event.content);
-		if (!parsedContent) return null;
-		const serverId = event.tags.find((tag) => tag[0] === TAG_SERVER_IDENTIFIER)?.[1];
-		return {
-			tool: parsedContent,
-			meta: {
-				serverId,
-				providerPubkey: event.pubkey
-			}
-		};
-	} catch (error) {
-		console.error(error);
-		return null;
-	}
-};
+import type { CapPricing, ToolsList } from '$lib/types';
+import type { ListToolsResult, Tool } from '@modelcontextprotocol/sdk/types.js';
+import { TAG_CAPABILITY } from '@dvmcp/commons/core';
 
 /**
  * Parse a tools list event (kind 31317)
@@ -37,7 +15,7 @@ export const parseTool = async (event: NDKEvent): Promise<ToolWithMeta | null> =
  */
 export const parseToolsList = (event: NDKEvent): ToolsList | null => {
 	try {
-		const parsedContent = parseAnnouncementContent<{ tools: Tool[] }>(event.content);
+		const parsedContent = parseAnnouncementContent<ListToolsResult>(event.content);
 		if (!parsedContent || !parsedContent.tools) return null;
 
 		// Extract tool pricing information from cap tags

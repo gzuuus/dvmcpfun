@@ -11,14 +11,13 @@
 	import type { JSONSchema7 } from 'json-schema';
 	import { copyToClipboard } from '$lib/utils';
 	import qrcode from 'qrcode-generator';
-	import { validator } from '../../routes/dvm/[identifier]/_validator';
+	import { validator } from '../../routes/s/[identifier]/_validator';
 	import Spinner from './spinner.svelte';
 	import { filterOptionalParameters } from '$lib/utils/commons';
 	import type { CapPricing } from '$lib/types';
 
 	export let provider: { providerPubkey: string; serverId: string };
 	export let tool: Tool;
-	// Optional pricing information
 	export let pricing: CapPricing | undefined = undefined;
 
 	let uiSchema: UiSchemaRoot = {
@@ -40,8 +39,6 @@
 	const initialValue = {};
 
 	const executionStore = capabilityExecutor.getExecutionStore(tool.name, 'tool');
-
-	// Pricing is now passed as a prop
 
 	$: copyInvoice = () => {
 		if ($executionStore.paymentInfo?.invoice) {

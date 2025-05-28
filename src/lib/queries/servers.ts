@@ -147,6 +147,12 @@ export const fetchToolsListByServerId = async (
 	};
 };
 
+// Define a new type that combines both resources and resource templates
+export interface CombinedResourcesData {
+	resources?: ResourcesListWithProvider;
+	resourceTemplates?: ResourcesTemplatesListWithProvider;
+}
+
 /**
  * Fetches the resources list for a specific server
  * According to the new DVMCP spec, resources lists are separate events (kind 31318)
@@ -155,7 +161,7 @@ export const fetchToolsListByServerId = async (
  */
 export const fetchResourcesListByServerId = async (
 	serverId: string
-): Promise<ResourcesListWithProvider | ResourcesTemplatesListWithProvider | null> => {
+): Promise<CombinedResourcesData | null> => {
 	const ndk = get(ndkStore);
 	const relayUrls = Array.from(ndk.pool.relays.keys());
 	const relaySet = NDKRelaySet.fromRelayUrls(relayUrls, ndk);
@@ -177,20 +183,58 @@ export const fetchResourcesListByServerId = async (
 		return null;
 	}
 
-	// Get the most recent resources list event
-	const event = Array.from(events)[0];
-	const resourcesList = parseResourcesList(event);
+	// Process all events to find resources and resource templates
+	const allEvents = Array.from(events);
 
-	if (!resourcesList) {
-		return null;
+	// Find the most recent resources event (with 'resources' in content)
+	const resourcesEvent = allEvents.find((event) => {
+		try {
+			const content = JSON.parse(event.content);
+			return content && 'resources' in content;
+		} catch {
+			return false;
+		}
+	});
+
+	// Find the most recent resource templates event (with 'resourceTemplates' in content)
+	const resourceTemplatesEvent = allEvents.find((event) => {
+		try {
+			const content = JSON.parse(event.content);
+			return content && 'resourceTemplates' in content;
+		} catch {
+			return false;
+		}
+	});
+
+	// Initialize the combined result
+	const result: CombinedResourcesData = {};
+
+	// Process resources event if available
+	if (resourcesEvent) {
+		const resourcesList = parseResourcesList(resourcesEvent);
+		if (resourcesList && 'resources' in resourcesList) {
+			result.resources = {
+				...resourcesList,
+				providerPubkey: resourcesEvent.pubkey,
+				serverId
+			} as ResourcesListWithProvider;
+		}
 	}
 
-	// Add provider pubkey and server ID to create ResourcesListWithProvider or ResourcesTemplatesListWithProvider
-	return {
-		...resourcesList,
-		providerPubkey: event.pubkey,
-		serverId
-	};
+	// Process resource templates event if available
+	if (resourceTemplatesEvent) {
+		const resourceTemplatesList = parseResourcesList(resourceTemplatesEvent);
+		if (resourceTemplatesList && 'resourceTemplates' in resourceTemplatesList) {
+			result.resourceTemplates = {
+				...resourceTemplatesList,
+				providerPubkey: resourceTemplatesEvent.pubkey,
+				serverId
+			} as ResourcesTemplatesListWithProvider;
+		}
+	}
+
+	// Return null only if we have neither resources nor resource templates
+	return Object.keys(result).length > 0 ? result : null;
 };
 
 /**

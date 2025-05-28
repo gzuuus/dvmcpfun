@@ -30,13 +30,13 @@ export const parseResourcesList = (
 		}
 
 		// Extract resource pricing information from cap tags
-		const resourcesPricing = new Map<string, CapPricing>();
+		const pricingMap = new Map<string, CapPricing>();
 		event.tags
 			.filter((tag) => tag[0] === TAG_CAPABILITY && tag.length >= 4)
 			.forEach((tag) => {
 				const [_, resourceName, price, unit] = tag;
 				if (resourceName && price && unit) {
-					resourcesPricing.set(resourceName, { price, unit });
+					pricingMap.set(resourceName, { price, unit });
 				}
 			});
 
@@ -44,12 +44,12 @@ export const parseResourcesList = (
 		if (parsedContent.resources) {
 			return {
 				resources: parsedContent.resources,
-				resourcesPricing
+				resourcesPricing: pricingMap
 			};
 		} else if (parsedContent.resourceTemplates) {
 			return {
 				resourceTemplates: parsedContent.resourceTemplates,
-				resourcesTemplatesPricing: resourcesPricing
+				resourceTemplatesPricing: pricingMap // Consistent naming (removed the extra 's')
 			};
 		}
 

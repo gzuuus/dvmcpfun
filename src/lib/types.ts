@@ -59,7 +59,7 @@ export type ResourcesListWithProvider = ResourcesList & ProviderServerMeta;
 
 export interface ResourcesTemplatesList {
 	resourceTemplates?: ResourceTemplate[];
-	resourcesTemplatesPricing?: Map<string, CapPricing>;
+	resourceTemplatesPricing?: Map<string, CapPricing>;
 }
 
 // Resources templates list with provider metadata

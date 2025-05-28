@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { createForm3, RawForm } from '@sjsf/form';
 	import { translation } from '@sjsf/form/translations/en';
-	import { validator } from '../../routes/dvm/[identifier]/_validator';
+	import { validator } from '../../routes/s/[identifier]/_validator';
 	import { theme } from '@sjsf/shadcn-theme';
-	import type { FormOptions, UiSchemaRoot } from '@sjsf/form';
+	import type { UiSchemaRoot } from '@sjsf/form';
 	import { onDestroy } from 'svelte';
 	import { capabilityExecutor } from '$lib/services/capabilityExecutor';
 	import type { GetPromptRequest, Prompt } from '@modelcontextprotocol/sdk/types.js';

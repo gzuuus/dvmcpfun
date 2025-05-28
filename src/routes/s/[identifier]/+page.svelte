@@ -300,36 +300,99 @@
 								{/if}
 							</div>
 						{:else}
-							<!-- Capability listings -->
-							{#if $serverQuery.data.server.capabilities && typeof $serverQuery.data.server.capabilities === 'object' && 'tools' in $serverQuery.data.server.capabilities}
-								<div class="mb-6">
-									<h2 class="mb-3 text-2xl font-semibold text-primary">Tools</h2>
-									<ServerTools
-										serverId={$serverQuery.data.meta.serverId || ''}
-										onSelectTool={handleSelectTool}
-									/>
-								</div>
-							{/if}
+							<!-- Capability listings organized in tabs -->
+							{#if $serverQuery.data.server.capabilities && typeof $serverQuery.data.server.capabilities === 'object'}
+								<!-- Determine which tabs to show based on available capabilities -->
+								{@const hasTools = 'tools' in $serverQuery.data.server.capabilities}
+								{@const hasResources = 'resources' in $serverQuery.data.server.capabilities}
+								{@const hasPrompts = 'prompts' in $serverQuery.data.server.capabilities}
 
-							{#if $serverQuery.data.server.capabilities && typeof $serverQuery.data.server.capabilities === 'object' && 'resources' in $serverQuery.data.server.capabilities}
-								<div class="mb-6">
-									<h2 class="mb-3 text-2xl font-semibold text-primary">Resources</h2>
-									<ServerResources
-										serverId={$serverQuery.data.meta.serverId || ''}
-										onSelectResource={handleSelectResource}
-										onSelectResourceTemplate={handleSelectResourceTemplate}
-									/>
-								</div>
-							{/if}
+								<!-- Only create tabs if there are multiple capabilities -->
+								{#if (hasTools && hasResources) || (hasTools && hasPrompts) || (hasResources && hasPrompts)}
+									<div class="mb-6">
+										<h2 class="mb-3 text-2xl font-semibold text-primary">Capabilities</h2>
 
-							{#if $serverQuery.data.server.capabilities && typeof $serverQuery.data.server.capabilities === 'object' && 'prompts' in $serverQuery.data.server.capabilities}
-								<div class="mb-6">
-									<h2 class="mb-3 text-2xl font-semibold text-primary">Prompts</h2>
-									<ServerPrompts
-										serverId={$serverQuery.data.meta.serverId || ''}
-										onSelectPrompt={handleSelectPrompt}
-									/>
-								</div>
+										<Tabs.Root value={hasTools ? 'tools' : hasResources ? 'resources' : 'prompts'}>
+											<Tabs.List>
+												{#if hasTools}
+													<Tabs.Trigger value="tools">Tools</Tabs.Trigger>
+												{/if}
+												{#if hasResources}
+													<Tabs.Trigger value="resources">Resources</Tabs.Trigger>
+												{/if}
+												{#if hasPrompts}
+													<Tabs.Trigger value="prompts">Prompts</Tabs.Trigger>
+												{/if}
+											</Tabs.List>
+
+											{#if hasTools}
+												<Tabs.Content value="tools">
+													<div class="mt-4">
+														<ServerTools
+															serverId={$serverQuery.data.meta.serverId || ''}
+															onSelectTool={handleSelectTool}
+														/>
+													</div>
+												</Tabs.Content>
+											{/if}
+
+											{#if hasResources}
+												<Tabs.Content value="resources">
+													<div class="mt-4">
+														<ServerResources
+															serverId={$serverQuery.data.meta.serverId || ''}
+															onSelectResource={handleSelectResource}
+															onSelectResourceTemplate={handleSelectResourceTemplate}
+														/>
+													</div>
+												</Tabs.Content>
+											{/if}
+
+											{#if hasPrompts}
+												<Tabs.Content value="prompts">
+													<div class="mt-4">
+														<ServerPrompts
+															serverId={$serverQuery.data.meta.serverId || ''}
+															onSelectPrompt={handleSelectPrompt}
+														/>
+													</div>
+												</Tabs.Content>
+											{/if}
+										</Tabs.Root>
+									</div>
+									<!-- If there's only one capability, don't use tabs -->
+								{:else}
+									{#if hasTools}
+										<div class="mb-6">
+											<h2 class="mb-3 text-2xl font-semibold text-primary">Tools</h2>
+											<ServerTools
+												serverId={$serverQuery.data.meta.serverId || ''}
+												onSelectTool={handleSelectTool}
+											/>
+										</div>
+									{/if}
+
+									{#if hasResources}
+										<div class="mb-6">
+											<h2 class="mb-3 text-2xl font-semibold text-primary">Resources</h2>
+											<ServerResources
+												serverId={$serverQuery.data.meta.serverId || ''}
+												onSelectResource={handleSelectResource}
+												onSelectResourceTemplate={handleSelectResourceTemplate}
+											/>
+										</div>
+									{/if}
+
+									{#if hasPrompts}
+										<div class="mb-6">
+											<h2 class="mb-3 text-2xl font-semibold text-primary">Prompts</h2>
+											<ServerPrompts
+												serverId={$serverQuery.data.meta.serverId || ''}
+												onSelectPrompt={handleSelectPrompt}
+											/>
+										</div>
+									{/if}
+								{/if}
 							{/if}
 						{/if}
 
@@ -573,7 +636,7 @@
 					This MCP server has tools that can be accessed through the Tools section above.
 				</p>
 			</div>
-			<!-- <Accordion.Root type="single" class="w-full">
+			<Accordion.Root type="single" class="w-full">
 				<Accordion.Item value="item-1">
 					<Accordion.Trigger>
 						<h2 class="mb-3 text-xl font-semibold text-primary">Raw Data</h2>
@@ -581,14 +644,14 @@
 					<Accordion.Content>
 						<div class="rounded-lg border border-primary/20 bg-background p-4">
 							<pre class="overflow-auto font-mono text-sm text-primary/50">{JSON.stringify(
-									$dvmcpQuery.data.event,
+									$serverQuery.data.server,
 									null,
 									2
 								)}</pre>
 						</div>
 					</Accordion.Content>
 				</Accordion.Item>
-			</Accordion.Root> -->
+			</Accordion.Root>
 		</div>
 	{/if}
 </main>

@@ -31,6 +31,7 @@
 		ResourceTemplate,
 		Prompt
 	} from '@modelcontextprotocol/sdk/types.js';
+	import ServerCapBadges from '$lib/components/serverCapBadges.svelte';
 
 	// Generate naddr and nprofile strings for the install tab
 	$: naddrString =
@@ -187,29 +188,7 @@
 						<!-- Server Capabilities Section -->
 						<div class="mb-6">
 							<h2 class="mb-3 text-2xl font-semibold text-primary">Capabilities</h2>
-							<div class="flex flex-wrap gap-2">
-								{#if $serverQuery.data.server.capabilities && typeof $serverQuery.data.server.capabilities === 'object' && 'tools' in $serverQuery.data.server.capabilities}
-									<span
-										class="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary"
-									>
-										Tools
-									</span>
-								{/if}
-								{#if $serverQuery.data.server.capabilities && typeof $serverQuery.data.server.capabilities === 'object' && 'resources' in $serverQuery.data.server.capabilities}
-									<span
-										class="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary"
-									>
-										Resources
-									</span>
-								{/if}
-								{#if $serverQuery.data.server.capabilities && typeof $serverQuery.data.server.capabilities === 'object' && 'prompts' in $serverQuery.data.server.capabilities}
-									<span
-										class="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary"
-									>
-										Prompts
-									</span>
-								{/if}
-							</div>
+							<ServerCapBadges server={$serverQuery.data.server} />
 						</div>
 
 						{#if selectedTool || selectedResource || selectedResourceTemplate || selectedPrompt}

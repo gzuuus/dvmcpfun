@@ -3,6 +3,7 @@
 	import AuthorCard from './authorCard.svelte';
 	import { getHexColorFingerprintFromHexPubkey } from '$lib/utils/commons';
 	import type { ServerWithMeta } from '$lib/types';
+	import ServerCapBadges from './serverCapBadges.svelte';
 
 	export let server: ServerWithMeta;
 	const authorQuery = server.meta.providerPubkey
@@ -47,13 +48,14 @@
 		</div>
 
 		{#if server.meta.about || server.meta.website}
-			<div class="flex min-h-[2.5rem] flex-col gap-1 border-b border-primary/10 pb-2">
+			<div class="flex min-h-[2.5rem] flex-col gap-1 pb-2">
 				{#if server.meta.about}
 					<p class="line-clamp-2 text-primary/90">{server.meta.about}</p>
 				{/if}
 				{#if server.meta.website}
 					<p class="mt-2 line-clamp-2 text-foreground">{server.meta.website}</p>
 				{/if}
+				<ServerCapBadges server={server.server} />
 			</div>
 		{/if}
 	</a>

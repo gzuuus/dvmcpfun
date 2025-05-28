@@ -1,7 +1,11 @@
 import { decode } from 'nostr-tools/nip19';
 import type { JSONSchema7 } from 'json-schema';
+import type { NDKEvent } from '@nostr-dev-kit/ndk';
+import { TAG_CAPABILITY } from '@dvmcp/commons/core';
+import type { CapPricing, GenericCapabilityList } from '$lib/types';
+import { logger } from '$lib/utils/logger';
 
-export function parseAnnouncementContent<T>(content: string): T | null {
+export function parseContent<T>(content: string): T | null {
 	try {
 		return JSON.parse(content);
 	} catch {
@@ -43,4 +47,33 @@ export function filterOptionalParameters(
 		},
 		{} as Record<string, unknown>
 	);
+}
+
+export function parseCapabilityListEvent<T>(
+	event: NDKEvent,
+	capabilityType: string,
+	contentParser: (content: string) => T | null
+): GenericCapabilityList<T> | null {
+	try {
+		const parsedContent = contentParser(event.content);
+		if (!parsedContent) return null;
+
+		const pricing = new Map<string, CapPricing>();
+		event.tags
+			.filter((tag) => tag[0] === TAG_CAPABILITY && tag.length >= 4)
+			.forEach((tag) => {
+				const [_, name, price, unit] = tag;
+				if (name && price && unit) {
+					pricing.set(name, { price, unit });
+				}
+			});
+
+		return {
+			content: parsedContent,
+			pricing: pricing
+		};
+	} catch (error) {
+		logger.error(`Error parsing ${capabilityType} list`, error, 'commons:parseCapabilityListEvent');
+		return null;
+	}
 }

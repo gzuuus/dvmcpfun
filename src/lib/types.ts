@@ -80,3 +80,8 @@ export interface DVMAnnouncement extends DVMCPContent, ProviderServerMeta {
 	resources?: Resource[];
 	prompts?: Prompt[];
 }
+
+export interface GenericCapabilityList<T> {
+	content: T | null;
+	pricing: Map<string, CapPricing>;
+}

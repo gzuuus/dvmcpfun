@@ -1,7 +1,6 @@
 import type { NDKEvent } from '@nostr-dev-kit/ndk';
-import { parseAnnouncementContent } from './commons';
+import { parseContent, parseCapabilityListEvent } from './commons';
 import type { CapPricing, PromptsList } from '$lib/types';
-import { TAG_CAPABILITY } from '@dvmcp/commons/core';
 import type { ListPromptsResult } from '@modelcontextprotocol/sdk/types.js';
 
 /**
@@ -14,28 +13,14 @@ import type { ListPromptsResult } from '@modelcontextprotocol/sdk/types.js';
  * @returns A PromptsList object or null if parsing fails
  */
 export const parsePromptsList = (event: NDKEvent): PromptsList | null => {
-	try {
-		const parsedContent = parseAnnouncementContent<ListPromptsResult>(event.content);
-		if (!parsedContent || !parsedContent.prompts) return null;
+	const result = parseCapabilityListEvent<ListPromptsResult>(event, 'prompt', parseContent);
 
-		// Extract prompt pricing information from cap tags
-		const promptsPricing = new Map<string, CapPricing>();
-		event.tags
-			.filter((tag) => tag[0] === TAG_CAPABILITY && tag.length >= 4)
-			.forEach((tag) => {
-				const [_, promptName, price, unit] = tag;
-				if (promptName && price && unit) {
-					promptsPricing.set(promptName, { price, unit });
-				}
-			});
-
-		// Return the prompts list with pricing information
-		return {
-			prompts: parsedContent.prompts,
-			promptsPricing
-		};
-	} catch (error) {
-		console.error('Error parsing prompts list:', error);
+	if (!result || !result.content?.prompts) {
 		return null;
 	}
+
+	return {
+		prompts: result.content.prompts,
+		promptsPricing: result.pricing
+	};
 };

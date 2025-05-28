@@ -30,7 +30,6 @@
 				$serversQuery.refetch();
 			}
 		}
-		console.log('!!!', $serversQuery.data);
 	});
 
 	let phrases = [

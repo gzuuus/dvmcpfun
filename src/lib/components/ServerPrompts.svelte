@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { createPromptsListQuery } from '$lib/queries/servers';
 	import Spinner from './spinner.svelte';
+	import CapabilityCard from './CapabilityCard.svelte';
 	import type { Prompt } from '@modelcontextprotocol/sdk/types.js';
 
 	// Props
@@ -25,44 +26,17 @@
 	{:else if $promptsListQuery?.data?.prompts && $promptsListQuery?.data?.prompts.length > 0}
 		<div class="space-y-2">
 			{#each $promptsListQuery?.data?.prompts || [] as prompt}
-				<div
-					class="cursor-pointer rounded-lg border border-primary/20 bg-background p-3 transition-colors hover:border-primary/40"
-					on:click={() => onSelectPrompt(prompt)}
-					on:keydown={(e) => e.key === 'Enter' && onSelectPrompt(prompt)}
-					tabindex="0"
-					role="button"
-				>
-					<div class="flex items-center justify-between">
-						<h3 class="text-base font-medium text-primary">{prompt.name}</h3>
-						{#if $promptsListQuery?.data?.promptsPricing && $promptsListQuery?.data?.promptsPricing.get(prompt.name)}
-							<span class="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
-								Price: {$promptsListQuery?.data?.promptsPricing.get(prompt.name)?.price}
-								{$promptsListQuery?.data?.promptsPricing.get(prompt.name)?.unit}
-							</span>
-						{/if}
-					</div>
-					{#if prompt.description}
-						<p class="mt-1 text-sm text-foreground">{prompt.description}</p>
-					{/if}
-					{#if prompt.arguments && prompt.arguments.length > 0}
-						<div class="mt-2">
-							<p class="text-xs font-medium text-foreground/70">Arguments:</p>
-							<div class="mt-1 space-y-1">
-								{#each prompt.arguments as arg}
-									<div class="flex items-center gap-1 text-xs">
-										<span class="font-medium">{arg.name}</span>
-										{#if arg.required}
-											<span class="text-destructive">*</span>
-										{/if}
-										{#if arg.description}
-											<span class="text-foreground/70">- {arg.description}</span>
-										{/if}
-									</div>
-								{/each}
-							</div>
-						</div>
-					{/if}
-				</div>
+				{@const pricing = $promptsListQuery?.data?.promptsPricing?.get(prompt.name)}
+				<CapabilityCard
+					name={prompt.name}
+					description={prompt.description}
+					price={typeof pricing?.price === 'string' ? parseFloat(pricing.price) : pricing?.price}
+					unit={pricing?.unit}
+					type="prompt"
+					args={prompt.arguments}
+					capability={prompt}
+					onSelect={onSelectPrompt}
+				/>
 			{/each}
 		</div>
 	{:else}

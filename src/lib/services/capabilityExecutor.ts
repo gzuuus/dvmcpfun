@@ -3,17 +3,10 @@ import { NDKPrivateKeySigner } from '@nostr-dev-kit/ndk';
 import { generateSecretKey } from 'nostr-tools';
 import { get, writable, type Writable } from 'svelte/store';
 import ndkStore from '$lib/stores/nostr';
-import type {
-	CallToolRequest,
-	Tool,
-	Resource,
-	Prompt,
-	ReadResourceRequest,
-	GetPromptRequest
-} from '@modelcontextprotocol/sdk/types.js';
+import type { Tool, Resource, Prompt } from '@modelcontextprotocol/sdk/types.js';
 import { setupNDKSigner } from '$lib/stores/login';
 import type { JSONSchema7 } from 'json-schema';
-import type { CapPricing, PaymentInfo } from '$lib/types';
+import type { PaymentInfo } from '$lib/types';
 import {
 	NOTIFICATION_KIND,
 	REQUEST_KIND,
@@ -23,6 +16,36 @@ import {
 	TAG_SERVER_IDENTIFIER
 } from '@dvmcp/commons/core';
 import { filterOptionalParameters } from '$lib/utils/commons';
+import { logger } from '$lib/utils/logger';
+
+// Explicitly import request types for the new RequestType
+import type {
+	CallToolRequest,
+	GetPromptRequest,
+	ReadResourceRequest
+} from '@modelcontextprotocol/sdk/types.js';
+
+// Define a union type for all possible request payloads
+type RequestType = CallToolRequest | GetPromptRequest | ReadResourceRequest;
+
+// Define interface for capability key details
+interface CapabilityDetails {
+	capabilityName: string;
+	capabilityType: CapabilityType;
+}
+
+// Helper function to centralize the logic for deriving capability key details
+function getCapabilityKeyDetails(request: RequestType): CapabilityDetails {
+	if (request.method === 'tools/call') {
+		return { capabilityName: request.params.name, capabilityType: 'tool' };
+	} else if (request.method === 'prompts/get') {
+		return { capabilityName: request.params.name, capabilityType: 'prompt' };
+	} else if (request.method === 'resources/read') {
+		return { capabilityName: request.params.uri, capabilityType: 'resource' };
+	}
+	logger.error('Unknown request method', request, 'CapabilityExecutor:getCapabilityKeyDetails');
+	throw new Error(`Unknown request method: ${JSON.stringify(request)}`); // Still throw to maintain existing flow
+}
 
 // Define capability types
 export type CapabilityType = 'tool' | 'resource' | 'prompt';
@@ -50,10 +73,8 @@ export class CapabilityExecutor {
 	/**
 	 * Get or create an execution store for a capability
 	 */
-	public getExecutionStore(
-		capabilityName: string,
-		capabilityType: CapabilityType
-	): Writable<CapabilityExecutionState> {
+	public getExecutionStore(request: RequestType): Writable<CapabilityExecutionState> {
+		const { capabilityName, capabilityType } = getCapabilityKeyDetails(request);
 		const storeKey = `${capabilityType}:${capabilityName}`;
 
 		if (!this.executionStates.has(storeKey)) {
@@ -73,37 +94,29 @@ export class CapabilityExecutor {
 	}
 
 	/**
-	 * Execute a tool capability
+	 * Internal generic method to execute any capability with common state and error handling.
 	 */
-	public async executeTool(
-		tool: Tool,
-		params: Record<string, unknown>,
+	private async _executeCapabilityInternal<T>(
+		requestPayload: CallToolRequest | GetPromptRequest | ReadResourceRequest,
 		providerPk: string,
 		serverId?: string
-	): Promise<unknown> {
-		const executionStore = this.getExecutionStore(tool.name, 'tool');
+	): Promise<T> {
+		const { capabilityName, capabilityType } = getCapabilityKeyDetails(requestPayload);
+		const executionStore = this.getExecutionStore(requestPayload);
 
 		executionStore.update((state) => ({ ...state, status: 'loading', result: null, error: null }));
 
 		try {
-			// Create a properly formatted tool request
-			const toolRequest: CallToolRequest = {
-				method: 'tools/call',
-				params: {
-					name: tool.name,
-					arguments: filterOptionalParameters(params, tool.inputSchema as JSONSchema7)
-				}
-			};
-
-			const result = await this.executeCapability(toolRequest, providerPk, serverId);
-
-			// Update the execution store with the result
+			const result = await this.executeCapability(requestPayload, providerPk, serverId);
 			executionStore.update((state) => ({ ...state, status: 'success', result, error: null }));
-
-			return result;
+			return result as T;
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : String(error);
-			console.error(`Error executing tool ${tool.name}:`, errorMessage);
+			logger.error(
+				`Error executing ${capabilityType} ${capabilityName}`,
+				error,
+				'CapabilityExecutor:_executeCapabilityInternal'
+			);
 			executionStore.update((state) => ({
 				...state,
 				status: 'error',
@@ -115,6 +128,25 @@ export class CapabilityExecutor {
 	}
 
 	/**
+	 * Execute a tool capability
+	 */
+	public async executeTool(
+		tool: Tool,
+		params: Record<string, unknown>,
+		providerPk: string,
+		serverId?: string
+	): Promise<unknown> {
+		const toolRequest: CallToolRequest = {
+			method: 'tools/call',
+			params: {
+				name: tool.name,
+				arguments: filterOptionalParameters(params, tool.inputSchema as JSONSchema7)
+			}
+		};
+		return this._executeCapabilityInternal(toolRequest, providerPk, serverId);
+	}
+
+	/**
 	 * Execute a resource capability (read a resource)
 	 */
 	public async executeResource(
@@ -122,33 +154,13 @@ export class CapabilityExecutor {
 		providerPk: string,
 		serverId?: string
 	): Promise<unknown> {
-		const executionStore = this.getExecutionStore(resource.name, 'resource');
-
-		executionStore.update((state) => ({ ...state, status: 'loading', result: null, error: null }));
 		const resourceReadRequest: ReadResourceRequest = {
 			method: 'resources/read',
 			params: {
 				uri: resource.uri
 			}
 		};
-		try {
-			const result = await this.executeCapability(resourceReadRequest, providerPk, serverId);
-
-			// Update the execution store with the result
-			executionStore.update((state) => ({ ...state, status: 'success', result, error: null }));
-
-			return result;
-		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : String(error);
-			console.error(`Error reading resource ${resource.name}:`, errorMessage);
-			executionStore.update((state) => ({
-				...state,
-				status: 'error',
-				result: null,
-				error: errorMessage
-			}));
-			throw error;
-		}
+		return this._executeCapabilityInternal(resourceReadRequest, providerPk, serverId);
 	}
 
 	/**
@@ -160,9 +172,6 @@ export class CapabilityExecutor {
 		providerPk: string,
 		serverId?: string
 	): Promise<unknown> {
-		const executionStore = this.getExecutionStore(prompt.name, 'prompt');
-
-		executionStore.update((state) => ({ ...state, status: 'loading', result: null, error: null }));
 		const promptGetRequest: GetPromptRequest = {
 			method: 'prompts/get',
 			params: {
@@ -170,25 +179,7 @@ export class CapabilityExecutor {
 				arguments: args
 			}
 		};
-
-		try {
-			const result = await this.executeCapability(promptGetRequest, providerPk, serverId);
-
-			// Update the execution store with the result
-			executionStore.update((state) => ({ ...state, status: 'success', result, error: null }));
-
-			return result;
-		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : String(error);
-			console.error(`Error executing prompt ${prompt.name}:`, errorMessage);
-			executionStore.update((state) => ({
-				...state,
-				status: 'error',
-				result: null,
-				error: errorMessage
-			}));
-			throw error;
-		}
+		return this._executeCapabilityInternal(promptGetRequest, providerPk, serverId);
 	}
 
 	/**
@@ -226,18 +217,6 @@ export class CapabilityExecutor {
 				const requestEvent = await this.createCapabilityRequest(params, providerPk, serverId);
 				const executionId = requestEvent.id;
 
-				// Extract capability type and name for the execution store
-				const executionStore = this.getExecutionStore(
-					(params as GetPromptRequest).params.name ||
-						(params as ReadResourceRequest).params.uri ||
-						'unknown',
-					params.method === 'tools/call'
-						? 'tool'
-						: params.method === 'resources/read'
-							? 'resource'
-							: 'prompt'
-				);
-
 				const timeoutId = setTimeout(() => {
 					reject(
 						new Error(
@@ -248,10 +227,14 @@ export class CapabilityExecutor {
 				}, CapabilityExecutor.EXECUTION_TIMEOUT);
 
 				// Log the subscription filter for debugging
-				console.log('Subscribing to capability response with filter:', {
-					kinds: [RESPONSE_KIND as number, NOTIFICATION_KIND],
-					'#e': [executionId]
-				});
+				logger.debug(
+					'Subscribing to capability response with filter:',
+					{
+						kinds: [RESPONSE_KIND as number, NOTIFICATION_KIND],
+						'#e': [executionId]
+					},
+					'CapabilityExecutor:executeCapability'
+				);
 
 				// Set up subscription BEFORE publishing the request
 				const subscription = get(ndkStore).subscribe(
@@ -266,16 +249,24 @@ export class CapabilityExecutor {
 
 				subscription.on('event', async (event: NDKEvent) => {
 					// Log the received event for debugging
-					console.log('Received event in capability executor:', {
-						kind: event.kind,
-						id: event.id,
-						content: event.content.substring(0, 100) + (event.content.length > 100 ? '...' : '')
-					});
+					logger.debug(
+						'Received event in capability executor:',
+						{
+							kind: event.kind,
+							id: event.id,
+							content: event.content.substring(0, 100) + (event.content.length > 100 ? '...' : '')
+						},
+						'CapabilityExecutor:executeCapability'
+					);
 
 					if (event.kind === RESPONSE_KIND) {
 						try {
 							const result = JSON.parse(event.content);
-							console.log('Parsed response result:', result);
+							logger.debug(
+								'Parsed response result:',
+								result,
+								'CapabilityExecutor:executeCapability'
+							);
 							clearTimeout(timeoutId);
 							this.cleanupExecution(executionId);
 
@@ -293,11 +284,18 @@ export class CapabilityExecutor {
 									resolve(result); // Fallback to returning the entire result
 								}
 							} else {
-								console.warn('Response has unexpected format:', result);
+								logger.warn(
+									'Response has unexpected format',
+									'CapabilityExecutor:executeCapability'
+								);
 								resolve(result); // Fallback to returning the entire result
 							}
 						} catch (error) {
-							console.error('Error parsing response content:', error);
+							logger.error(
+								'Error parsing response content',
+								error,
+								'CapabilityExecutor:executeCapability'
+							);
 							clearTimeout(timeoutId);
 							this.cleanupExecution(executionId);
 							reject(error instanceof Error ? error : new Error(String(error)));
@@ -326,19 +324,8 @@ export class CapabilityExecutor {
 									eventId: eventIdTag[1],
 									pubkey: pubkeyTag[1]
 								};
-
-								executionStore.update((state) => ({
-									...state,
-									status: 'payment-required',
-									paymentInfo
-								}));
 							}
 						} else if (status === 'payment-accepted') {
-							executionStore.update((state) => ({
-								...state,
-								status: 'loading',
-								paymentInfo: undefined
-							}));
 						}
 					}
 				});
@@ -351,9 +338,17 @@ export class CapabilityExecutor {
 					})
 				);
 
-				console.log('Publishing request event:', executionId);
+				logger.debug(
+					'Publishing request event:',
+					executionId,
+					'CapabilityExecutor:executeCapability'
+				);
 				await requestEvent.publish();
-				console.log('Request published successfully');
+				logger.debug(
+					'Request published successfully',
+					null,
+					'CapabilityExecutor:executeCapability'
+				);
 			} catch (error) {
 				reject(error);
 			}

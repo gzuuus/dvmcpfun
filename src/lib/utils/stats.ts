@@ -2,6 +2,7 @@ import type { CallToolRequest, Tool } from '@modelcontextprotocol/sdk/types.js';
 import { statsServerId } from '../../routes/stats/constants'; // Adjust path as needed after file creation
 import { fetchToolsListByServerId } from '$lib/queries/servers';
 import { capabilityExecutor } from '$lib/services/capabilityExecutor';
+import { logger } from '$lib/utils/logger';
 
 /**
  * Executes a stats query using the predefined stats server ID.
@@ -36,7 +37,11 @@ export async function executeStatQuery(
 		);
 		return tool; // Return the tool object which includes the description
 	} catch (err) {
-		console.error(`Error executing stats query for tool '${toolName}':`, err);
+		logger.error(
+			`Error executing stats query for tool '${toolName}'`,
+			err,
+			'stats:executeStatQuery'
+		);
 		return undefined; // Indicate failure
 	}
 }
@@ -55,7 +60,7 @@ export function parseStatResult<T>(result: any[] | null | undefined, defaultValu
 			return JSON.parse(result[0].text) as T[];
 		}
 	} catch (error) {
-		console.error('Error parsing stats result:', error, 'Raw result:', result);
+		logger.error('Error parsing stats result', error, 'stats:parseStatResult');
 	}
 	return defaultValue;
 }

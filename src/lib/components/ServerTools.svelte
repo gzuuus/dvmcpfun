@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { createToolsListQuery } from '$lib/queries/servers';
 	import Spinner from './spinner.svelte';
+	import CapabilityCard from './CapabilityCard.svelte';
 	import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 
 	// Props
@@ -11,7 +12,7 @@
 	$: toolsListQuery = serverId ? createToolsListQuery(serverId) : undefined;
 </script>
 
-<div>
+<section>
 	{#if !toolsListQuery}
 		<div class="py-2 text-foreground/70">No server ID provided.</div>
 	{:else if $toolsListQuery?.isLoading}
@@ -25,29 +26,19 @@
 	{:else if $toolsListQuery?.data && $toolsListQuery?.data?.tools && $toolsListQuery?.data?.tools.length > 0}
 		<div class="space-y-4">
 			{#each $toolsListQuery?.data?.tools || [] as tool}
-				<div
-					class="cursor-pointer rounded-lg border border-primary/20 bg-background p-4 transition-colors hover:border-primary/40"
-					on:click={() => onSelectTool(tool)}
-					on:keydown={(e) => e.key === 'Enter' && onSelectTool(tool)}
-					tabindex="0"
-					role="button"
-				>
-					<div class="flex items-center justify-between">
-						<h3 class="text-lg font-medium text-primary">{tool.name}</h3>
-						{#if $toolsListQuery?.data?.toolsPricing && $toolsListQuery?.data?.toolsPricing.get(tool.name)}
-							<span class="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
-								Price: {$toolsListQuery?.data?.toolsPricing.get(tool.name)?.price}
-								{$toolsListQuery?.data?.toolsPricing.get(tool.name)?.unit}
-							</span>
-						{/if}
-					</div>
-					{#if tool.description}
-						<p class="mt-2 text-foreground">{tool.description}</p>
-					{/if}
-				</div>
+				{@const pricing = $toolsListQuery?.data?.toolsPricing?.get(tool.name)}
+				<CapabilityCard
+					name={tool.name}
+					description={tool.description}
+					price={typeof pricing?.price === 'string' ? parseFloat(pricing.price) : pricing?.price}
+					unit={pricing?.unit}
+					type="tool"
+					capability={tool}
+					onSelect={onSelectTool}
+				/>
 			{/each}
 		</div>
 	{:else}
 		<div class="py-2 text-foreground/70">No tools available for this server.</div>
 	{/if}
-</div>
+</section>

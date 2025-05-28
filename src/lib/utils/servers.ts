@@ -1,6 +1,7 @@
 import type { NDKEvent } from '@nostr-dev-kit/ndk';
-import { parseAnnouncementContent } from './commons';
+import { parseContent } from './commons';
 import type { ServerWithMeta } from '$lib/types';
+import { logger } from '$lib/utils/logger';
 import { TAG_UNIQUE_IDENTIFIER } from '@dvmcp/commons/core';
 import type { Implementation } from '@modelcontextprotocol/sdk/types.js';
 
@@ -18,7 +19,7 @@ export const parseServer = async (event: NDKEvent): Promise<ServerWithMeta | nul
 	try {
 		// Parse the server implementation from the content
 		// This should contain the capabilities flags but NOT the actual lists
-		const parsedContent = parseAnnouncementContent<Implementation>(event.content);
+		const parsedContent = parseContent<Implementation>(event.content);
 		if (!parsedContent) return null;
 
 		// Extract metadata from tags
@@ -51,7 +52,7 @@ export const parseServer = async (event: NDKEvent): Promise<ServerWithMeta | nul
 			}
 		};
 	} catch (error) {
-		console.error('Error parsing server:', error);
+		logger.error('Error parsing server', error, 'servers:parseServer');
 		return null;
 	}
 };

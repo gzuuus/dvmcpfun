@@ -1,8 +1,7 @@
 import type { NDKEvent } from '@nostr-dev-kit/ndk';
-import { parseAnnouncementContent } from './commons';
+import { parseContent, parseCapabilityListEvent } from './commons';
 import type { CapPricing, ToolsList } from '$lib/types';
 import type { ListToolsResult, Tool } from '@modelcontextprotocol/sdk/types.js';
-import { TAG_CAPABILITY } from '@dvmcp/commons/core';
 
 /**
  * Parse a tools list event (kind 31317)
@@ -14,30 +13,16 @@ import { TAG_CAPABILITY } from '@dvmcp/commons/core';
  * @returns A ToolsList object or null if parsing fails
  */
 export const parseToolsList = (event: NDKEvent): ToolsList | null => {
-	try {
-		const parsedContent = parseAnnouncementContent<ListToolsResult>(event.content);
-		if (!parsedContent || !parsedContent.tools) return null;
+	const result = parseCapabilityListEvent<ListToolsResult>(event, 'tool', parseContent);
 
-		// Extract tool pricing information from cap tags
-		const toolsPricing = new Map<string, CapPricing>();
-		event.tags
-			.filter((tag) => tag[0] === TAG_CAPABILITY && tag.length >= 4)
-			.forEach((tag) => {
-				const [_, toolName, price, unit] = tag;
-				if (toolName && price && unit) {
-					toolsPricing.set(toolName, { price, unit });
-				}
-			});
-
-		// Return the tools list with pricing information
-		return {
-			tools: parsedContent.tools,
-			toolsPricing
-		};
-	} catch (error) {
-		console.error('Error parsing tools list:', error);
+	if (!result || !result.content?.tools) {
 		return null;
 	}
+
+	return {
+		tools: result.content.tools,
+		toolsPricing: result.pricing
+	};
 };
 
 export function createToolExecutionHash(

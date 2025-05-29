@@ -3,10 +3,10 @@ import { NDKPrivateKeySigner } from '@nostr-dev-kit/ndk';
 import { generateSecretKey } from 'nostr-tools';
 import { get, writable, type Writable } from 'svelte/store';
 import ndkStore from '$lib/stores/nostr';
-import type { Tool, Resource, Prompt } from '@modelcontextprotocol/sdk/types.js';
+import type { Tool, Resource, Prompt, ResourceTemplate } from '@modelcontextprotocol/sdk/types.js';
 import { setupNDKSigner } from '$lib/stores/login';
 import type { JSONSchema7 } from 'json-schema';
-import type { PaymentInfo } from '$lib/types';
+import type { CapabilityType, PaymentInfo } from '$lib/types';
 import {
 	NOTIFICATION_KIND,
 	REQUEST_KIND,
@@ -48,8 +48,6 @@ function getCapabilityKeyDetails(request: RequestType): CapabilityDetails {
 function getStoreKey(capabilityName: string, capabilityType: CapabilityType): string {
 	return `${capabilityType}:${capabilityName}`;
 }
-
-export type CapabilityType = 'tool' | 'resource' | 'prompt';
 
 export type ExecutionStatus = 'idle' | 'loading' | 'success' | 'error' | 'payment-required';
 
@@ -159,6 +157,30 @@ export class CapabilityExecutor {
 				uri: resource.uri
 			}
 		};
+		return this._executeCapabilityInternal(resourceReadRequest, providerPk, serverId);
+	}
+
+	/**
+	 * Execute a resource capability (read a resource)
+	 */
+	public async executeResourceTemplate(
+		resourceTemplate: ResourceTemplate,
+		providerPk: string,
+		serverId?: string
+	): Promise<unknown> {
+		const resourceReadRequest: ReadResourceRequest = {
+			method: 'resources/read',
+			params: {
+				uri: resourceTemplate.uriTemplate
+			}
+		};
+
+		// Get the execution store for this resource template
+		const executionStore = this.getExecutionStore(resourceReadRequest);
+
+		// Reset the store to ensure we start fresh
+		executionStore.update((state) => ({ ...state, status: 'idle', result: null, error: null }));
+
 		return this._executeCapabilityInternal(resourceReadRequest, providerPk, serverId);
 	}
 

@@ -2,12 +2,12 @@
 	import type { FormOptions, UiSchemaRoot } from '@sjsf/form';
 	import { capabilityExecutor } from '$lib/services/capabilityExecutor';
 	import type { CallToolRequest, Tool } from '@modelcontextprotocol/sdk/types.js';
-	import type { CapPricing } from '$lib/types';
+	import type { CapPricing, ProviderServerMeta } from '$lib/types';
 	import CapabilityForm from './CapabilityForm.svelte';
 	import qrcode from 'qrcode-generator';
 	import { logger } from '$lib/utils/logger';
 
-	export let provider: { providerPubkey: string; serverId: string };
+	export let provider: ProviderServerMeta;
 	export let tool: Tool;
 	export let pricing: CapPricing | undefined = undefined;
 
@@ -31,6 +31,10 @@
 
 	// Handle form submission
 	async function onSubmit(value: CallToolRequest['params']['arguments']) {
+		if (!provider.providerPubkey || !provider.serverId) {
+			logger.error('Provider pubkey or server ID not found', 'ToolForm:onSubmit');
+			return;
+		}
 		try {
 			logger.info(
 				`Executing tool: ${tool.name} with arguments: ${JSON.stringify(value)}`,

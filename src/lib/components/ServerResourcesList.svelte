@@ -29,7 +29,7 @@
 			<h3 class="mb-3 text-lg font-semibold text-primary">Resources</h3>
 			<div class="space-y-2">
 				{#each resources as resource}
-					{@const pricing = resourcesData?.resourcesPricing?.get(resource.name)}
+					{@const pricing = resourcesData?.resourcesPricing?.get(resource.uri)}
 					<CapabilityCard
 						name={resource.name}
 						description={resource.description}

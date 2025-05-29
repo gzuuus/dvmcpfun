@@ -1,56 +1,26 @@
 <script lang="ts">
 	import type { GetPromptRequest, Prompt } from '@modelcontextprotocol/sdk/types.js';
-	import type { CapPricing } from '$lib/types';
+	import type { CapPricing, ProviderServerMeta } from '$lib/types';
 	import type { JSONSchema7 } from 'json-schema';
 	import CapabilityForm from './CapabilityForm.svelte';
 	import { capabilityExecutor } from '$lib/services/capabilityExecutor';
 	import { logger } from '$lib/utils/logger';
+	import qrcode from 'qrcode-generator';
+	import { createSchemaFromPromptArgs } from '$lib/utils/schemaUtils';
 
-	export let provider: { providerPubkey: string; serverId: string };
+	export let provider: ProviderServerMeta;
 	export let prompt: Prompt;
 	export let pricing: CapPricing | undefined = undefined;
 
-	// Convert prompt arguments to JSONSchema7 format
-	function convertArgumentsToSchema(
-		promptArgs: GetPromptRequest['params']['arguments']
-	): JSONSchema7 {
-		if (!promptArgs || !Array.isArray(promptArgs)) {
-			return {
-				type: 'object',
-				properties: {},
-				required: []
-			};
-		}
-
-		const properties: Record<string, any> = {};
-		const required: string[] = [];
-
-		promptArgs.forEach((arg) => {
-			if (arg.name) {
-				properties[arg.name] = {
-					type: 'string',
-					title: arg.name,
-					description: arg.description || ''
-				};
-
-				if (arg.required) {
-					required.push(arg.name);
-				}
-			}
-		});
-
-		return {
-			type: 'object',
-			properties,
-			required: required.length > 0 ? required : undefined
-		};
-	}
-
-	const schema = convertArgumentsToSchema(
+	const schema = createSchemaFromPromptArgs(
 		prompt.arguments as GetPromptRequest['params']['arguments']
 	);
 
 	async function onSubmit(value: GetPromptRequest['params']['arguments']) {
+		if (!provider.providerPubkey || !provider.serverId) {
+			logger.error('Provider pubkey or server ID not found', 'PromptForm:onSubmit');
+			return;
+		}
 		try {
 			logger.info(
 				`Executing prompt: ${prompt.name} with arguments: ${JSON.stringify(value)}`,
@@ -76,9 +46,25 @@
 
 	// Get the execution store for this specific prompt
 	$: promptExecutionStore = capabilityExecutor.getExecutionStore(createPromptRequest(prompt.name));
+
+	// Generate QR code for payment invoice
+	let qrCodeSvg = '';
+	$: {
+		if ($promptExecutionStore.paymentInfo?.invoice) {
+			const qr = qrcode(0, 'L');
+			qr.addData($promptExecutionStore.paymentInfo.invoice);
+			qr.make();
+			qrCodeSvg = qr.createSvgTag({ cellSize: 4, margin: 2 });
+		}
+	}
 </script>
 
 <CapabilityForm capabilityName={prompt.name} capabilityType="prompt" {pricing} {schema} {onSubmit}>
+	<div slot="payment-qr-code">
+		<div class="flex justify-center rounded-md bg-white p-4 shadow-sm">
+			{@html qrCodeSvg}
+		</div>
+	</div>
 	<div slot="success-result">
 		{#if $promptExecutionStore.result}
 			{#if Array.isArray($promptExecutionStore.result)}

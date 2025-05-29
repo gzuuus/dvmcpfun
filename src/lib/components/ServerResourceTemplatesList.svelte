@@ -30,7 +30,9 @@
 			<h3 class="mb-3 text-lg font-semibold text-primary">Resource Templates</h3>
 			<div class="space-y-2">
 				{#each resourceTemplates as template}
-					{@const pricing = resourceTemplatesData?.resourceTemplatesPricing?.get(template.name)}
+					{@const pricing =
+						resourceTemplatesData?.resourceTemplatesPricing?.get(template.uriTemplate) ||
+						resourceTemplatesData?.resourceTemplatesPricing?.get(template.name)}
 					<CapabilityCard
 						name={template.name}
 						description={template.description}

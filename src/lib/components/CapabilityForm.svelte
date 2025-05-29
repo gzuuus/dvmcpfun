@@ -6,7 +6,7 @@
 	import { copyToClipboard } from '$lib/utils';
 	import { logger } from '$lib/utils/logger';
 	import Spinner from './spinner.svelte';
-	import type { CapPricing, ProviderServerMeta } from '$lib/types';
+	import type { CapabilityType, CapPricing } from '$lib/types';
 	import type { JSONSchema7 } from 'json-schema';
 	import { createForm3, RawForm } from '@sjsf/form';
 	import { translation } from '@sjsf/form/translations/en';
@@ -20,7 +20,7 @@
 	} from '@modelcontextprotocol/sdk/types.js';
 
 	export let capabilityName: string;
-	export let capabilityType: 'prompt' | 'resource' | 'tool';
+	export let capabilityType: CapabilityType;
 	export let pricing: CapPricing | undefined = undefined;
 	export let schema: JSONSchema7 | undefined = undefined;
 	export let uiSchema: UiSchemaRoot = {
@@ -44,20 +44,20 @@
 
 	function createRequestObject(
 		name: string,
-		type: 'prompt' | 'resource' | 'tool'
+		type: CapabilityType
 	): CallToolRequest | GetPromptRequest | ReadResourceRequest {
 		if (type === 'prompt') {
 			return { method: 'prompts/get', params: { name, arguments: {} } };
-		} else if (type === 'resource') {
-			return { method: 'resources/read', params: { uri: name } };
 		} else if (type === 'tool') {
 			return { method: 'tools/call', params: { name, arguments: {} } };
+		} else if (type === 'resourceTemplates' || type === 'resource') {
+			return { method: 'resources/read', params: { uri: name, arguments: {} } };
 		}
 		logger.error('Unknown capability type', { name, type }, 'CapabilityForm:createRequestObject');
-		throw new Error('Unknown capability type'); // Still throw to maintain existing flow
+		throw new Error('Unknown capability type');
 	}
 
-	const executionStore = capabilityExecutor.getExecutionStore(
+	$: executionStore = capabilityExecutor.getExecutionStore(
 		createRequestObject(capabilityName, capabilityType)
 	);
 
@@ -80,7 +80,6 @@
 	}
 
 	onDestroy(() => {
-		// Use resetExecutionState directly, no need to create a dummy request
 		capabilityExecutor.resetExecutionState(capabilityName, capabilityType);
 	});
 </script>

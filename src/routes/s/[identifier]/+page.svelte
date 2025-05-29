@@ -5,7 +5,6 @@
 	import ToolForm from '$lib/components/ToolForm.svelte';
 	import ResourceForm from '$lib/components/ResourceForm.svelte';
 	import PromptForm from '$lib/components/PromptForm.svelte';
-	import ResourceTemplateForm from '$lib/components/ResourceTemplateForm.svelte';
 	import * as Accordion from '$lib/components/ui/accordion/index.js';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import { nip19 } from 'nostr-tools';
@@ -32,6 +31,7 @@
 		Prompt
 	} from '@modelcontextprotocol/sdk/types.js';
 	import ServerCapBadges from '$lib/components/serverCapBadges.svelte';
+	import ResourcesTemplatesForm from '$lib/components/ResourcesTemplatesForm.svelte';
 
 	// Generate naddr and nprofile strings for the install tab
 	$: naddrString =
@@ -249,7 +249,7 @@
 										{#if selectedResourceTemplate.description}
 											<p class="mb-4 text-foreground">{selectedResourceTemplate.description}</p>
 										{/if}
-										<ResourceTemplateForm
+										<ResourcesTemplatesForm
 											resourceTemplate={selectedResourceTemplate}
 											provider={{
 												providerPubkey: $serverQuery.data?.meta?.providerPubkey || '',

@@ -1,9 +1,10 @@
 <script lang="ts">
+	import type { CapabilityType } from '$lib/types';
 	export let name: string;
 	export let description: string | undefined = undefined;
 	export let price: number | undefined = undefined;
 	export let unit: string | undefined = undefined;
-	export let type: 'prompt' | 'resource' | 'resourceTemplate' | 'tool';
+	export let type: CapabilityType;
 	export let args: { name: string; required?: boolean; description?: string }[] | undefined =
 		undefined;
 	export let mimeType: string | undefined = undefined;
@@ -11,7 +12,6 @@
 	export let uriTemplate: string | undefined = undefined;
 	export let capability: any;
 	export let onSelect: (capability: any) => void;
-
 	$: paddingClass = type === 'tool' ? 'p-4' : 'p-3';
 	$: headingTag = type === 'tool' ? 'h3' : 'h4';
 	$: headingClass = type === 'tool' ? 'text-lg' : 'text-base';
@@ -58,14 +58,14 @@
 		</div>
 	{/if}
 
-	{#if type === 'resource' || type === 'resourceTemplate'}
+	{#if type === 'resource' || type === 'resourceTemplates'}
 		{#if mimeType}
 			<p class="mt-1 text-xs text-foreground/70">Type: {mimeType}</p>
 		{/if}
 		{#if type === 'resource' && uri}
 			<p class="mt-1 truncate text-xs text-foreground/70">URI: {uri}</p>
 		{/if}
-		{#if type === 'resourceTemplate' && uriTemplate}
+		{#if type === 'resourceTemplates' && uriTemplate}
 			<p class="mt-1 truncate text-xs text-foreground/70">Template: {uriTemplate}</p>
 		{/if}
 	{/if}

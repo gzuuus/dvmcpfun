@@ -85,3 +85,5 @@ export interface GenericCapabilityList<T> {
 	content: T | null;
 	pricing: Map<string, CapPricing>;
 }
+
+export type CapabilityType = 'tool' | 'resource' | 'prompt' | 'resourceTemplates';

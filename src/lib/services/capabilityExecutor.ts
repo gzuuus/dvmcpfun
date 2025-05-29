@@ -11,30 +11,28 @@ import {
 	NOTIFICATION_KIND,
 	REQUEST_KIND,
 	RESPONSE_KIND,
+	TAG_AMOUNT,
+	TAG_EVENT_ID,
 	TAG_METHOD,
 	TAG_PUBKEY,
-	TAG_SERVER_IDENTIFIER
+	TAG_SERVER_IDENTIFIER,
+	TAG_STATUS
 } from '@dvmcp/commons/core';
 import { filterOptionalParameters } from '$lib/utils/commons';
 import { logger } from '$lib/utils/logger';
-
-// Explicitly import request types for the new RequestType
 import type {
 	CallToolRequest,
 	GetPromptRequest,
 	ReadResourceRequest
 } from '@modelcontextprotocol/sdk/types.js';
 
-// Define a union type for all possible request payloads
 type RequestType = CallToolRequest | GetPromptRequest | ReadResourceRequest;
 
-// Define interface for capability key details
 interface CapabilityDetails {
 	capabilityName: string;
 	capabilityType: CapabilityType;
 }
 
-// Helper function to centralize the logic for deriving capability key details
 function getCapabilityKeyDetails(request: RequestType): CapabilityDetails {
 	if (request.method === 'tools/call') {
 		return { capabilityName: request.params.name, capabilityType: 'tool' };
@@ -44,16 +42,17 @@ function getCapabilityKeyDetails(request: RequestType): CapabilityDetails {
 		return { capabilityName: request.params.uri, capabilityType: 'resource' };
 	}
 	logger.error('Unknown request method', request, 'CapabilityExecutor:getCapabilityKeyDetails');
-	throw new Error(`Unknown request method: ${JSON.stringify(request)}`); // Still throw to maintain existing flow
+	throw new Error(`Unknown request method: ${JSON.stringify(request)}`);
 }
 
-// Define capability types
+function getStoreKey(capabilityName: string, capabilityType: CapabilityType): string {
+	return `${capabilityType}:${capabilityName}`;
+}
+
 export type CapabilityType = 'tool' | 'resource' | 'prompt';
 
-// Define execution status
 export type ExecutionStatus = 'idle' | 'loading' | 'success' | 'error' | 'payment-required';
 
-// Define execution state interface
 export interface CapabilityExecutionState {
 	status: ExecutionStatus;
 	result: any | null;
@@ -75,7 +74,7 @@ export class CapabilityExecutor {
 	 */
 	public getExecutionStore(request: RequestType): Writable<CapabilityExecutionState> {
 		const { capabilityName, capabilityType } = getCapabilityKeyDetails(request);
-		const storeKey = `${capabilityType}:${capabilityName}`;
+		const storeKey = getStoreKey(capabilityName, capabilityType);
 
 		if (!this.executionStates.has(storeKey)) {
 			this.executionStates.set(
@@ -186,8 +185,7 @@ export class CapabilityExecutor {
 	 * Reset execution state for a capability
 	 */
 	public resetExecutionState(capabilityName: string, capabilityType: CapabilityType): void {
-		const storeKey = `${capabilityType}:${capabilityName}`;
-		const store = this.executionStates.get(storeKey);
+		const store = this.executionStates.get(getStoreKey(capabilityName, capabilityType));
 
 		if (store) {
 			store.update((state) => ({ ...state, status: 'idle', result: null, error: null }));
@@ -213,7 +211,6 @@ export class CapabilityExecutor {
 	): Promise<unknown> {
 		return new Promise(async (resolve, reject) => {
 			try {
-				// Create the request event first but don't publish it yet
 				const requestEvent = await this.createCapabilityRequest(params, providerPk, serverId);
 				const executionId = requestEvent.id;
 
@@ -226,17 +223,6 @@ export class CapabilityExecutor {
 					this.cleanupExecution(executionId);
 				}, CapabilityExecutor.EXECUTION_TIMEOUT);
 
-				// Log the subscription filter for debugging
-				logger.debug(
-					'Subscribing to capability response with filter:',
-					{
-						kinds: [RESPONSE_KIND as number, NOTIFICATION_KIND],
-						'#e': [executionId]
-					},
-					'CapabilityExecutor:executeCapability'
-				);
-
-				// Set up subscription BEFORE publishing the request
 				const subscription = get(ndkStore).subscribe(
 					[
 						{
@@ -248,7 +234,6 @@ export class CapabilityExecutor {
 				);
 
 				subscription.on('event', async (event: NDKEvent) => {
-					// Log the received event for debugging
 					logger.debug(
 						'Received event in capability executor:',
 						{
@@ -270,25 +255,22 @@ export class CapabilityExecutor {
 							clearTimeout(timeoutId);
 							this.cleanupExecution(executionId);
 
-							// Handle the response format
 							if (result) {
 								if (result.content) {
 									resolve(result.content);
 								} else if (result.contents) {
-									// For resources
 									resolve(result.contents);
 								} else if (result.messages) {
-									// For prompts
 									resolve(result.messages);
 								} else {
-									resolve(result); // Fallback to returning the entire result
+									resolve(result);
 								}
 							} else {
 								logger.warn(
 									'Response has unexpected format',
 									'CapabilityExecutor:executeCapability'
 								);
-								resolve(result); // Fallback to returning the entire result
+								resolve(result);
 							}
 						} catch (error) {
 							logger.error(
@@ -301,7 +283,7 @@ export class CapabilityExecutor {
 							reject(error instanceof Error ? error : new Error(String(error)));
 						}
 					} else if (event.kind === NOTIFICATION_KIND) {
-						const statusTag = event.tags.find((t) => t[0] === 'status');
+						const statusTag = event.tags.find((t) => t[0] === TAG_STATUS);
 						if (!statusTag) return;
 
 						const status = statusTag[1];
@@ -311,10 +293,10 @@ export class CapabilityExecutor {
 							this.cleanupExecution(executionId);
 							reject(new Error(event.content));
 						} else if (status === 'payment-required') {
-							const amountTag = event.tags.find((t) => t[0] === 'amount');
+							const amountTag = event.tags.find((t) => t[0] === TAG_AMOUNT);
 							const invoiceTag = event.tags.find((t) => t[0] === 'invoice');
-							const eventIdTag = event.tags.find((t) => t[0] === 'e');
-							const pubkeyTag = event.tags.find((t) => t[0] === 'p');
+							const eventIdTag = event.tags.find((t) => t[0] === TAG_EVENT_ID);
+							const pubkeyTag = event.tags.find((t) => t[0] === TAG_PUBKEY);
 
 							if (amountTag && invoiceTag && eventIdTag && pubkeyTag) {
 								const paymentInfo: PaymentInfo = {
@@ -324,8 +306,37 @@ export class CapabilityExecutor {
 									eventId: eventIdTag[1],
 									pubkey: pubkeyTag[1]
 								};
+
+								const { capabilityName, capabilityType } = getCapabilityKeyDetails(params);
+								const executionStore = this.executionStates.get(
+									getStoreKey(capabilityName, capabilityType)
+								);
+
+								if (executionStore) {
+									executionStore.update((state) => ({
+										...state,
+										status: 'payment-required',
+										paymentInfo
+									}));
+								}
+
+								// Don't reject or resolve the promise yet - wait for payment to be accepted
 							}
 						} else if (status === 'payment-accepted') {
+							const { capabilityName, capabilityType } = getCapabilityKeyDetails(params);
+							const executionStore = this.executionStates.get(
+								getStoreKey(capabilityName, capabilityType)
+							);
+
+							if (executionStore) {
+								executionStore.update((state) => ({
+									...state,
+									status: 'loading',
+									paymentInfo: undefined
+								}));
+							}
+
+							// Continue waiting for the actual response
 						}
 					}
 				});
@@ -390,7 +401,6 @@ export class CapabilityExecutor {
 		request.tags.push([TAG_METHOD, params.method]);
 		request.tags.push([TAG_PUBKEY, provider]);
 
-		// Add server ID tag if provided
 		if (serverId) {
 			request.tags.push([TAG_SERVER_IDENTIFIER, serverId]);
 		}
@@ -404,5 +414,4 @@ export class CapabilityExecutor {
 	}
 }
 
-// Export a singleton instance
 export const capabilityExecutor = new CapabilityExecutor();

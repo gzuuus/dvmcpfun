@@ -6,13 +6,14 @@
 	import { copyToClipboard } from '$lib/utils';
 	import { logger } from '$lib/utils/logger';
 	import Spinner from './spinner.svelte';
-	import type { CapabilityType, CapPricing } from '$lib/types';
-	import type { JSONSchema7 } from 'json-schema';
-	import { createForm3, RawForm } from '@sjsf/form';
+	import type { CapabilityType } from '$lib/types';
+	import { createForm, BasicForm, type FormState, type Theme } from '@sjsf/form';
 	import { translation } from '@sjsf/form/translations/en';
-	import { theme } from '@sjsf/shadcn-theme';
+	import { theme } from '@sjsf/shadcn4-theme';
+	import { resolver } from '@sjsf/form/resolvers/basic';
+	import * as components from '@sjsf/shadcn4-theme/new-york';
 	import { validator } from '../../routes/s/[identifier]/_validator';
-	import type { UiSchemaRoot } from '@sjsf/form';
+	import { setThemeContext } from '@sjsf/shadcn4-theme';
 	import type {
 		CallToolRequest,
 		GetPromptRequest,
@@ -35,7 +36,28 @@
 				}
 			},
 			'ui:globalOptions': {
-				input: {
+				shadcnText: {
+					class: 'bg-background/5'
+				},
+				shadcnNumber: {
+					class: 'bg-background/5'
+				},
+				shadcnSelectTrigger: {
+					class: 'bg-background/5'
+				},
+				shadcnTextarea: {
+					class: 'bg-background/5'
+				},
+				shadcnCheckbox: {
+					class: 'bg-background/5'
+				},
+				shadcnRadioButtons: {
+					class: 'bg-background/5'
+				},
+				shadcnRadioGroup: {
+					class: 'bg-background/5'
+				},
+				shadcnSwitch: {
 					class: 'bg-background/5'
 				}
 			}
@@ -67,19 +89,22 @@
 		capabilityExecutor.getExecutionStore(createRequestObject(capabilityName, capabilityType))
 	);
 
-	let createdForm: ReturnType<typeof createForm3> | undefined = $state(undefined);
+	let createdForm: FormState<Record<string, any>, typeof validator> | undefined = $state(undefined);
 
 	$effect(() => {
 		if (schema && onSubmit) {
-			createdForm = createForm3({
-				...theme,
+			createdForm = createForm<Record<string, any>, typeof validator>({
+				theme: theme as unknown as Theme,
+				resolver,
 				initialValue,
 				schema,
 				uiSchema,
 				translation,
 				validator,
-				onSubmit
+				onSubmit,
+				idPrefix: capabilityName
 			});
+			setThemeContext({ components });
 		} else {
 			createdForm = undefined;
 		}
@@ -148,7 +173,7 @@
 		</Alert.Root>
 	{:else}
 		{#if createdForm}
-			<RawForm form={createdForm} class="dark flex flex-col gap-4" />
+			<BasicForm form={createdForm} class="dark flex flex-col gap-4" />
 		{:else if formContent}
 			{@render formContent?.()}
 		{/if}

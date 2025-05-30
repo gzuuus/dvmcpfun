@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { setThemeContext } from '@sjsf/shadcn-theme';
-	import { components } from '@sjsf/shadcn-theme/default';
+	import { setThemeContext } from '@sjsf/shadcn4-theme';
 	import ToolForm from '$lib/components/ToolForm.svelte';
 	import ResourceForm from '$lib/components/ResourceForm.svelte';
 	import PromptForm from '$lib/components/PromptForm.svelte';
@@ -28,8 +27,8 @@
 		ResourceTemplate,
 		Prompt
 	} from '@modelcontextprotocol/sdk/types.js';
-	import ServerCapBadges from '$lib/components/serverCapBadges.svelte';
 	import ResourcesTemplatesForm from '$lib/components/ResourcesTemplatesForm.svelte';
+	import * as components from '@sjsf/shadcn4-theme/new-york';
 
 	const serverQuery = createServerQuery(page.params.identifier);
 
@@ -122,8 +121,38 @@
 			? `${$serverQuery.data.meta.name || 'Server'} | DVMCP Fun`
 			: 'Loading... | DVMCP Fun'
 	);
-
+	let hasTools = $state<boolean>(false);
+	let hasResources = $state<boolean>(false);
+	let hasPrompts = $state<boolean>(false);
 	setThemeContext({ components });
+
+	let activeTab = $state<'tools' | 'resources' | 'prompts'>();
+	$effect(() => {
+		hasTools = !!(
+			$serverQuery.data?.server.capabilities &&
+			typeof $serverQuery.data?.server.capabilities === 'object' &&
+			'tools' in $serverQuery.data?.server.capabilities
+		);
+		hasResources = !!(
+			$serverQuery.data?.server.capabilities &&
+			typeof $serverQuery.data?.server.capabilities === 'object' &&
+			'resources' in $serverQuery.data?.server.capabilities
+		);
+		hasPrompts = !!(
+			$serverQuery.data?.server.capabilities &&
+			typeof $serverQuery.data?.server.capabilities === 'object' &&
+			'prompts' in $serverQuery.data?.server.capabilities
+		);
+		activeTab = hasTools ? 'tools' : hasResources ? 'resources' : 'prompts';
+	});
+
+	function getValue() {
+		return activeTab;
+	}
+
+	function setValue(newValue: 'tools' | 'resources' | 'prompts' | undefined) {
+		activeTab = newValue;
+	}
 </script>
 
 <svelte:head>
@@ -136,7 +165,7 @@
 		class="mb-8 inline-flex items-center text-primary no-underline transition-colors hover:text-primary/80 hover:underline"
 	>
 		<span class="mr-2">←</span>
-		Back to Tools
+		Back home
 	</a>
 
 	{#if $serverQuery.isLoading}
@@ -196,12 +225,6 @@
 								pubkey={$serverQuery.data.meta.providerPubkey || ''}
 							/>
 						</div>
-						<!-- Server Capabilities Section -->
-						<div class="mb-6">
-							<h2 class="mb-3 text-2xl font-semibold text-primary">Capabilities</h2>
-							<ServerCapBadges server={$serverQuery.data.server} />
-						</div>
-
 						{#if selectedTool || selectedResource || selectedResourceTemplate || selectedPrompt}
 							<!-- Selected capability details -->
 							<div class="mb-6">
@@ -293,16 +316,13 @@
 							<!-- Capability listings organized in tabs -->
 							{#if $serverQuery.data.server.capabilities && typeof $serverQuery.data.server.capabilities === 'object'}
 								<!-- Determine which tabs to show based on available capabilities -->
-								{@const hasTools = 'tools' in $serverQuery.data.server.capabilities}
-								{@const hasResources = 'resources' in $serverQuery.data.server.capabilities}
-								{@const hasPrompts = 'prompts' in $serverQuery.data.server.capabilities}
 
 								<!-- Only create tabs if there are multiple capabilities -->
 								{#if (hasTools && hasResources) || (hasTools && hasPrompts) || (hasResources && hasPrompts)}
 									<div class="mb-6">
 										<h2 class="mb-3 text-2xl font-semibold text-primary">Capabilities</h2>
 
-										<Tabs.Root value={hasTools ? 'tools' : hasResources ? 'resources' : 'prompts'}>
+										<Tabs.Root bind:value={getValue, setValue}>
 											<Tabs.List>
 												{#if hasTools}
 													<Tabs.Trigger value="tools">Tools</Tabs.Trigger>

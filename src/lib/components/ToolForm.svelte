@@ -1,11 +1,11 @@
 <script lang="ts">
-	import type { FormOptions, UiSchemaRoot } from '@sjsf/form';
 	import { capabilityExecutor } from '$lib/services/capabilityExecutor';
 	import type { CallToolRequest, Tool } from '@modelcontextprotocol/sdk/types.js';
 	import type { CapPricing, ProviderServerMeta } from '$lib/types';
-	import CapabilityForm from './CapabilityForm.svelte';
 	import qrcode from 'qrcode-generator';
 	import { logger } from '$lib/utils/logger';
+	import CapabilityForm from './CapabilityForm.svelte';
+	import type { JSONSchema7 } from 'json-schema';
 
 	let {
 		provider,
@@ -17,25 +17,7 @@
 		pricing?: CapPricing;
 	} = $props();
 
-	let uiSchema: UiSchemaRoot = {
-		submitButton: {
-			'ui:options': {
-				title: 'Execute',
-				button: {
-					class:
-						'w-fit px-4 py-2 bg-primary text-background rounded-md hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed'
-				}
-			}
-		},
-		'ui:globalOptions': {
-			input: {
-				class: 'bg-background/5'
-			}
-		}
-	};
-	const initialValue = {};
-
-	// Handle form submission
+	// Function to execute tool
 	async function onSubmit(value: CallToolRequest['params']['arguments']) {
 		if (!provider.providerPubkey || !provider.serverId) {
 			logger.error('Provider pubkey or server ID not found', 'ToolForm:onSubmit');
@@ -57,6 +39,7 @@
 		}
 	}
 
+	// Create a dummy RequestType to get the store
 	const toolExecutionStore = $derived(
 		capabilityExecutor.getExecutionStore({
 			method: 'tools/call',
@@ -64,6 +47,7 @@
 		})
 	);
 
+	// Generate QR code for payment invoice
 	let qrCodeSvg = $state('');
 	$effect(() => {
 		if ($toolExecutionStore.paymentInfo?.invoice) {
@@ -113,10 +97,21 @@
 	capabilityName={tool.name}
 	capabilityType="tool"
 	{pricing}
-	schema={tool.inputSchema as FormOptions<string, string>['schema']}
-	{uiSchema}
+	schema={tool.inputSchema as JSONSchema7}
+	uiSchema={{
+		submitButton: {
+			'ui:options': {
+				title: 'Execute'
+			}
+		},
+		'ui:globalOptions': {
+			// Specific uiSchema button/input properties were removed due to type incompatibility.
+			// Styling handled via global CSS and shadcn components.
+		}
+	}}
 	{onSubmit}
-	{initialValue}
+	initialValue={{}}
 	payment-qr-code={paymentQrCode}
+	form-content={undefined}
 	success-result={successResult}
 />

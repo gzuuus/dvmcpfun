@@ -1,12 +1,11 @@
 <script lang="ts">
 	import type { GetPromptRequest, Prompt } from '@modelcontextprotocol/sdk/types.js';
 	import type { CapPricing, ProviderServerMeta } from '$lib/types';
-	import type { JSONSchema7 } from 'json-schema';
-	import CapabilityForm from './CapabilityForm.svelte';
 	import { capabilityExecutor } from '$lib/services/capabilityExecutor';
 	import { logger } from '$lib/utils/logger';
 	import qrcode from 'qrcode-generator';
 	import { createSchemaFromPromptArgs } from '$lib/utils/schemaUtils';
+	import CapabilityForm from './CapabilityForm.svelte';
 
 	let {
 		provider,
@@ -118,7 +117,17 @@
 	capabilityType="prompt"
 	{pricing}
 	{schema}
+	uiSchema={{
+		submitButton: {
+			'ui:options': {
+				title: 'Execute'
+			}
+		},
+		'ui:globalOptions': {}
+	}}
 	{onSubmit}
+	initialValue={{}}
 	payment-qr-code={paymentQrCode}
+	form-content={undefined}
 	success-result={successResult}
 />

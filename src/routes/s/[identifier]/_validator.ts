@@ -1,6 +1,5 @@
-import Ajv from 'ajv';
-import { Validator, addFormComponents, DEFAULT_AJV_CONFIG } from '@sjsf/ajv8-validator';
+import type { ErrorObject } from 'ajv';
+import { createFormValidator } from '@sjsf/ajv8-validator';
+import type { FormValueValidator } from '@sjsf/form';
 
-export const validator = new Validator({
-	ajv: addFormComponents(new Ajv(DEFAULT_AJV_CONFIG))
-});
+export const validator = createFormValidator() satisfies FormValueValidator<ErrorObject>;

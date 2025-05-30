@@ -1,11 +1,10 @@
 <script lang="ts">
 	import { capabilityExecutor } from '$lib/services/capabilityExecutor';
-	import type { ResourceTemplate, ReadResourceRequest } from '@modelcontextprotocol/sdk/types.js';
+	import type { ResourceTemplate } from '@modelcontextprotocol/sdk/types.js';
 	import type { CapPricing, ProviderServerMeta } from '$lib/types';
 	import CapabilityForm from './CapabilityForm.svelte';
 	import { logger } from '$lib/utils/logger';
 	import qrcode from 'qrcode-generator';
-	import type { JSONSchema7 } from 'json-schema';
 	import { createSchemaFromUriTemplate, populateUriTemplate } from '$lib/utils/schemaUtils';
 
 	let {

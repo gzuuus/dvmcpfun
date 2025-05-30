@@ -1,7 +1,11 @@
 <script lang="ts">
 	import type { Implementation } from '@modelcontextprotocol/sdk/types.js';
 
-	export let server: Implementation;
+	let {
+		server
+	}: {
+		server: Implementation;
+	} = $props();
 </script>
 
 <div class="flex flex-wrap gap-2">

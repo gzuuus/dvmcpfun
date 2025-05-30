@@ -1,26 +1,39 @@
 <script lang="ts">
 	import type { CapabilityType } from '$lib/types';
-	export let name: string;
-	export let description: string | undefined = undefined;
-	export let price: number | undefined = undefined;
-	export let unit: string | undefined = undefined;
-	export let type: CapabilityType;
-	export let args: { name: string; required?: boolean; description?: string }[] | undefined =
-		undefined;
-	export let mimeType: string | undefined = undefined;
-	export let uri: string | undefined = undefined;
-	export let uriTemplate: string | undefined = undefined;
-	export let capability: any;
-	export let onSelect: (capability: any) => void;
-	$: paddingClass = type === 'tool' ? 'p-4' : 'p-3';
-	$: headingTag = type === 'tool' ? 'h3' : 'h4';
-	$: headingClass = type === 'tool' ? 'text-lg' : 'text-base';
+	let {
+		name,
+		description = undefined,
+		price = undefined,
+		unit = undefined,
+		type,
+		args = undefined,
+		mimeType = undefined,
+		uri = undefined,
+		uriTemplate = undefined,
+		capability,
+		onSelect
+	}: {
+		name: string;
+		description?: string;
+		price?: number;
+		unit?: string;
+		type: CapabilityType;
+		args?: { name: string; required?: boolean; description?: string }[];
+		mimeType?: string;
+		uri?: string;
+		uriTemplate?: string;
+		capability: any;
+		onSelect: (capability: any) => void;
+	} = $props();
+	const paddingClass = $derived(type === 'tool' ? 'p-4' : 'p-3');
+	const headingTag = $derived(type === 'tool' ? 'h3' : 'h4');
+	const headingClass = $derived(type === 'tool' ? 'text-lg' : 'text-base');
 </script>
 
 <div
 	class="cursor-pointer rounded-lg border border-primary/20 bg-background {paddingClass} transition-colors hover:border-primary/40"
-	on:click={() => onSelect(capability)}
-	on:keydown={(e) => e.key === 'Enter' && onSelect(capability)}
+	onclick={() => onSelect(capability)}
+	onkeydown={(e) => e.key === 'Enter' && onSelect(capability)}
 	tabindex="0"
 	role="button"
 >

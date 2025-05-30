@@ -19,8 +19,6 @@
 		createPromptsListQuery
 	} from '$lib/queries/servers';
 	import Spinner from '$lib/components/spinner.svelte';
-
-	// Import the new dedicated capability components
 	import ServerTools from '$lib/components/ServerTools.svelte';
 	import ServerResources from '$lib/components/ServerResources.svelte';
 	import ServerPrompts from '$lib/components/ServerPrompts.svelte';
@@ -33,8 +31,9 @@
 	import ServerCapBadges from '$lib/components/serverCapBadges.svelte';
 	import ResourcesTemplatesForm from '$lib/components/ResourcesTemplatesForm.svelte';
 
-	// Generate naddr and nprofile strings for the install tab
-	$: naddrString =
+	const serverQuery = createServerQuery(page.params.identifier);
+
+	const naddrString = $derived(
 		$serverQuery.data?.meta.serverId && $serverQuery.data?.meta.providerPubkey
 			? nip19.naddrEncode({
 					pubkey: $serverQuery.data.meta.providerPubkey,
@@ -42,36 +41,44 @@
 					identifier: $serverQuery.data.meta.serverId,
 					relays: []
 				})
-			: '';
+			: ''
+	);
 
-	$: nprofileString = $serverQuery.data?.meta.providerPubkey
-		? nip19.nprofileEncode({
-				pubkey: $serverQuery.data.meta.providerPubkey,
-				relays: []
-			})
-		: '';
+	const nprofileString = $derived(
+		$serverQuery.data?.meta.providerPubkey
+			? nip19.nprofileEncode({
+					pubkey: $serverQuery.data.meta.providerPubkey,
+					relays: []
+				})
+			: ''
+	);
 
 	// Fetch server details
-	const serverQuery = createServerQuery(page.params.identifier);
 
 	// Fetch capabilities lists for pricing information
-	$: toolsListQuery = $serverQuery.data?.meta.serverId
-		? createToolsListQuery($serverQuery.data.meta.serverId)
-		: undefined;
+	const toolsListQuery = $derived(
+		$serverQuery.data?.meta.serverId
+			? createToolsListQuery($serverQuery.data.meta.serverId)
+			: undefined
+	);
 
-	$: resourcesListQuery = $serverQuery.data?.meta.serverId
-		? createResourcesListQuery($serverQuery.data.meta.serverId)
-		: undefined;
+	const resourcesListQuery = $derived(
+		$serverQuery.data?.meta.serverId
+			? createResourcesListQuery($serverQuery.data.meta.serverId)
+			: undefined
+	);
 
-	$: promptsListQuery = $serverQuery.data?.meta.serverId
-		? createPromptsListQuery($serverQuery.data.meta.serverId)
-		: undefined;
+	const promptsListQuery = $derived(
+		$serverQuery.data?.meta.serverId
+			? createPromptsListQuery($serverQuery.data.meta.serverId)
+			: undefined
+	);
 
 	// State for selected capabilities
-	let selectedTool: Tool | null = null;
-	let selectedResource: Resource | null = null;
-	let selectedResourceTemplate: ResourceTemplate | null = null;
-	let selectedPrompt: Prompt | null = null;
+	let selectedTool: Tool | null = $state(null);
+	let selectedResource: Resource | null = $state(null);
+	let selectedResourceTemplate: ResourceTemplate | null = $state(null);
+	let selectedPrompt: Prompt | null = $state(null);
 
 	// Handler functions for capability selection
 	function handleSelectTool(tool: Tool) {
@@ -103,14 +110,18 @@
 	}
 
 	// Author query
-	$: authorQuery = $serverQuery.data?.meta.providerPubkey
-		? createAuthorQuery($serverQuery.data.meta.providerPubkey)
-		: undefined;
+	const authorQuery = $derived(
+		$serverQuery.data?.meta.providerPubkey
+			? createAuthorQuery($serverQuery.data.meta.providerPubkey)
+			: undefined
+	);
 
 	// Page title
-	$: pageTitle = $serverQuery.data
-		? `${$serverQuery.data.meta.name || 'Server'} | DVMCP Fun`
-		: 'Loading... | DVMCP Fun';
+	const pageTitle = $derived(
+		$serverQuery.data
+			? `${$serverQuery.data.meta.name || 'Server'} | DVMCP Fun`
+			: 'Loading... | DVMCP Fun'
+	);
 
 	setThemeContext({ components });
 </script>
@@ -180,9 +191,9 @@
 						<div class="mb-6">
 							<h2 class="mb-3 text-2xl font-semibold text-primary">Provider</h2>
 							<AuthorCard
-								profile={$authorQuery?.data}
+								profile={$authorQuery?.data || null}
 								variant="compact"
-								pubkey={$serverQuery.data.meta.providerPubkey}
+								pubkey={$serverQuery.data.meta.providerPubkey || ''}
 							/>
 						</div>
 						<!-- Server Capabilities Section -->
@@ -196,7 +207,7 @@
 							<div class="mb-6">
 								<button
 									class="mb-4 inline-flex items-center text-primary no-underline transition-colors hover:text-primary/80 hover:underline"
-									on:click={() => {
+									onclick={() => {
 										selectedTool = null;
 										selectedResource = null;
 										selectedResourceTemplate = null;
@@ -435,7 +446,7 @@
 														<span class="text-sm text-primary/50">Command</span>
 														<button
 															class="text-sm text-primary hover:text-primary/80"
-															on:click={() =>
+															onclick={() =>
 																copyToClipboard(
 																	`npx @dvmcp/discovery -y --server ${naddrString || ''}`
 																)}
@@ -455,7 +466,7 @@
 														<span class="text-sm text-primary/50">JSON Configuration</span>
 														<button
 															class="text-sm text-primary hover:text-primary/80"
-															on:click={() =>
+															onclick={() =>
 																copyToClipboard(
 																	JSON.stringify(
 																		{
@@ -522,7 +533,7 @@
 														<span class="text-sm text-primary/50">Command</span>
 														<button
 															class="text-sm text-primary hover:text-primary/80"
-															on:click={() =>
+															onclick={() =>
 																copyToClipboard(
 																	`npx @dvmcp/discovery -y --provider ${nprofileString || 'nostr-key'}`
 																)}
@@ -542,7 +553,7 @@
 														<span class="text-sm text-primary/50">JSON Configuration</span>
 														<button
 															class="text-sm text-primary hover:text-primary/80"
-															on:click={() =>
+															onclick={() =>
 																copyToClipboard(
 																	JSON.stringify(
 																		{

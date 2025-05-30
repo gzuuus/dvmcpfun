@@ -2,14 +2,25 @@
 	import Spinner from './spinner.svelte';
 	import { Check } from 'lucide-svelte';
 	import X from '@lucide/svelte/icons/x';
-	export let nip05: string;
-	export let isLoading: boolean = false;
-	export let isValid: boolean | undefined = undefined;
-	export let maxWidthClass: string = 'max-w-[16ch]';
-	export let textColor: string = 'text-foreground/40';
-	export let checkColor: string = 'text-foreground/70';
-	export let errorColor: string = 'text-destructive/70';
-	export let iconSize: number = 16;
+	let {
+		nip05,
+		isLoading = false,
+		isValid = undefined,
+		maxWidthClass = 'max-w-[16ch]',
+		textColor = 'text-foreground/40',
+		checkColor = 'text-foreground/70',
+		errorColor = 'text-destructive/70',
+		iconSize = 16
+	}: {
+		nip05: string;
+		isLoading?: boolean;
+		isValid?: boolean;
+		maxWidthClass?: string;
+		textColor?: string;
+		checkColor?: string;
+		errorColor?: string;
+		iconSize?: number;
+	} = $props();
 </script>
 
 {#if isLoading}

@@ -8,20 +8,27 @@
 	import X from '@lucide/svelte/icons/x';
 	import Nip05Badge from './Nip05Badge.svelte';
 
-	export let profile: NDKUserProfile | null = null;
-	export let pubkey: string | undefined = undefined;
-	export let variant: 'inline' | 'compact' | 'extended' | 'full' | 'minimal' = 'compact';
+	let {
+		profile,
+		pubkey,
+		variant = 'compact'
+	}: {
+		profile: NDKUserProfile | null;
+		pubkey: string;
+		variant?: 'minimal' | 'inline' | 'compact' | 'extended';
+	} = $props();
 
-	$: avatarUrl = profile?.picture || profile?.image || '';
-	$: displayName = profile?.displayName || profile?.name || 'Unknown';
-	$: bio = profile?.about || profile?.bio || '';
-	$: website = profile?.website;
-	$: bannerUrl = profile?.banner;
-	$: nip05 = profile?.nip05;
-	$: npub = pubkey ? truncatePubkeyToNpub(pubkey) : undefined;
+	const avatarUrl = $derived(profile?.picture || profile?.image || '');
+	const displayName = $derived(profile?.displayName || profile?.name || 'Unknown');
+	const bio = $derived(profile?.about || profile?.bio || '');
+	const website = $derived(profile?.website);
+	const bannerUrl = $derived(profile?.banner);
+	const nip05 = $derived(profile?.nip05);
+	const npub = $derived(pubkey ? truncatePubkeyToNpub(pubkey) : undefined);
 
-	$: nip05ValidationQuery =
-		profile && nip05 && pubkey ? createUservalidateNip05Query(profile, pubkey) : undefined;
+	const nip05ValidationQuery = $derived(
+		profile && nip05 && pubkey ? createUservalidateNip05Query(profile, pubkey) : undefined
+	);
 </script>
 
 {#if variant === 'minimal'}

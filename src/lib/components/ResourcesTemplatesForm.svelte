@@ -8,15 +8,21 @@
 	import type { JSONSchema7 } from 'json-schema';
 	import { createSchemaFromUriTemplate, populateUriTemplate } from '$lib/utils/schemaUtils';
 
-	export let provider: ProviderServerMeta;
-	export let resourceTemplate: ResourceTemplate;
-	export let pricing: CapPricing | undefined = undefined;
+	let {
+		provider,
+		resourceTemplate,
+		pricing = undefined
+	}: {
+		provider: ProviderServerMeta;
+		resourceTemplate: ResourceTemplate;
+		pricing?: CapPricing;
+	} = $props();
 
 	const { schema, parameters: templateParameters } = createSchemaFromUriTemplate(
 		resourceTemplate.uriTemplate
 	);
 
-	let currentPopulatedUri: string = '';
+	let currentPopulatedUri = $state('');
 
 	async function onSubmit(values: Record<string, string>) {
 		if (!provider.providerPubkey || !provider.serverId) {
@@ -39,20 +45,22 @@
 		}
 	}
 
-	$: resourceExecutionStore = capabilityExecutor.getExecutionStore({
-		method: 'resources/read',
-		params: { uri: currentPopulatedUri }
-	});
+	const resourceExecutionStore = $derived(
+		capabilityExecutor.getExecutionStore({
+			method: 'resources/read',
+			params: { uri: currentPopulatedUri }
+		})
+	);
 
-	let qrCodeSvg = '';
-	$: {
+	let qrCodeSvg = $state('');
+	$effect(() => {
 		if ($resourceExecutionStore.paymentInfo?.invoice) {
 			const qr = qrcode(0, 'L');
 			qr.addData($resourceExecutionStore.paymentInfo.invoice);
 			qr.make();
 			qrCodeSvg = qr.createSvgTag({ cellSize: 4, margin: 2 });
 		}
-	}
+	});
 </script>
 
 <CapabilityForm
@@ -62,14 +70,14 @@
 	{schema}
 	{onSubmit}
 >
-	<div slot="payment-qr-code">
+	{#snippet paymentQrCode()}
 		<div class="flex justify-center rounded-md bg-white p-4 shadow-sm">
 			{@html qrCodeSvg}
 		</div>
-	</div>
+	{/snippet}
 
 	<!-- Resource template details -->
-	<div slot="form-content">
+	{#snippet formContent()}
 		<div class="mb-4 rounded-lg border border-primary/20 bg-background p-4">
 			<h3 class="mb-2 text-lg font-medium text-primary">Resource Template Details</h3>
 			<p class="mb-2 text-foreground">
@@ -94,10 +102,10 @@
 				<p class="mt-2 italic text-foreground">No parameters to populate</p>
 			{/if}
 		</div>
-	</div>
+	{/snippet}
 
 	<!-- Results display -->
-	<div slot="success-result">
+	{#snippet successResult()}
 		{#if $resourceExecutionStore.result}
 			{#if Array.isArray($resourceExecutionStore.result)}
 				{#each $resourceExecutionStore.result as item}
@@ -138,5 +146,5 @@
 				</pre>
 			{/if}
 		{/if}
-	</div>
+	{/snippet}
 </CapabilityForm>

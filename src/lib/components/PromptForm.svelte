@@ -8,9 +8,15 @@
 	import qrcode from 'qrcode-generator';
 	import { createSchemaFromPromptArgs } from '$lib/utils/schemaUtils';
 
-	export let provider: ProviderServerMeta;
-	export let prompt: Prompt;
-	export let pricing: CapPricing | undefined = undefined;
+	let {
+		provider,
+		prompt,
+		pricing = undefined
+	}: {
+		provider: ProviderServerMeta;
+		prompt: Prompt;
+		pricing?: CapPricing;
+	} = $props();
 
 	const schema = createSchemaFromPromptArgs(
 		prompt.arguments as GetPromptRequest['params']['arguments']
@@ -45,64 +51,74 @@
 	}
 
 	// Get the execution store for this specific prompt
-	$: promptExecutionStore = capabilityExecutor.getExecutionStore(createPromptRequest(prompt.name));
+	const promptExecutionStore = $derived(
+		capabilityExecutor.getExecutionStore(createPromptRequest(prompt.name))
+	);
 
 	// Generate QR code for payment invoice
-	let qrCodeSvg = '';
-	$: {
+	let qrCodeSvg = $state('');
+	$effect(() => {
 		if ($promptExecutionStore.paymentInfo?.invoice) {
 			const qr = qrcode(0, 'L');
 			qr.addData($promptExecutionStore.paymentInfo.invoice);
 			qr.make();
 			qrCodeSvg = qr.createSvgTag({ cellSize: 4, margin: 2 });
 		}
-	}
+	});
 </script>
 
-<CapabilityForm capabilityName={prompt.name} capabilityType="prompt" {pricing} {schema} {onSubmit}>
-	<div slot="payment-qr-code">
-		<div class="flex justify-center rounded-md bg-white p-4 shadow-sm">
-			{@html qrCodeSvg}
-		</div>
+{#snippet paymentQrCode()}
+	<div class="flex justify-center rounded-md bg-white p-4 shadow-sm">
+		{@html qrCodeSvg}
 	</div>
-	<div slot="success-result">
-		{#if $promptExecutionStore.result}
-			{#if Array.isArray($promptExecutionStore.result)}
-				<div class="space-y-4">
-					{#each $promptExecutionStore.result as message}
-						<div class="rounded-lg border border-green-500/20 p-3">
-							<div class="mb-2 font-medium text-green-700 dark:text-green-300">
-								{message.role === 'user' ? 'User' : 'Assistant'}:
-							</div>
-							{#if message.content?.type === 'text'}
-								<div class="whitespace-pre-wrap text-green-700 dark:text-green-300">
-									{message.content.text}
-								</div>
-							{:else if message.content?.type === 'image'}
-								<div>
-									<img
-										src={`data:${message.content.mimeType};base64,${message.content.data}`}
-										alt=""
-										class="max-h-96 rounded-md"
-									/>
-								</div>
-							{:else if message.content?.type === 'resource' && message.content.resource?.text}
-								<div class="whitespace-pre-wrap text-green-700 dark:text-green-300">
-									{message.content.resource.text}
-								</div>
-							{:else}
-								<pre class="whitespace-pre-wrap text-sm text-green-700 dark:text-green-300">
-									{JSON.stringify(message.content, null, 2)}
-								</pre>
-							{/if}
+{/snippet}
+{#snippet successResult()}
+	{#if $promptExecutionStore.result}
+		{#if Array.isArray($promptExecutionStore.result)}
+			<div class="space-y-4">
+				{#each $promptExecutionStore.result as message}
+					<div class="rounded-lg border border-green-500/20 p-3">
+						<div class="mb-2 font-medium text-green-700 dark:text-green-300">
+							{message.role === 'user' ? 'User' : 'Assistant'}:
 						</div>
-					{/each}
-				</div>
-			{:else}
-				<pre class="whitespace-pre-wrap text-sm text-green-700 dark:text-green-300">
-					{JSON.stringify($promptExecutionStore.result, null, 2)}
-				</pre>
-			{/if}
+						{#if message.content?.type === 'text'}
+							<div class="whitespace-pre-wrap text-green-700 dark:text-green-300">
+								{message.content.text}
+							</div>
+						{:else if message.content?.type === 'image'}
+							<div>
+								<img
+									src={`data:${message.content.mimeType};base64,${message.content.data}`}
+									alt=""
+									class="max-h-96 rounded-md"
+								/>
+							</div>
+						{:else if message.content?.type === 'resource' && message.content.resource?.text}
+							<div class="whitespace-pre-wrap text-green-700 dark:text-green-300">
+								{message.content.resource.text}
+							</div>
+						{:else}
+							<pre class="whitespace-pre-wrap text-sm text-green-700 dark:text-green-300">
+								{JSON.stringify(message.content, null, 2)}
+							</pre>
+						{/if}
+					</div>
+				{/each}
+			</div>
+		{:else}
+			<pre class="whitespace-pre-wrap text-sm text-green-700 dark:text-green-300">
+				{JSON.stringify($promptExecutionStore.result, null, 2)}
+			</pre>
 		{/if}
-	</div>
-</CapabilityForm>
+	{/if}
+{/snippet}
+
+<CapabilityForm
+	capabilityName={prompt.name}
+	capabilityType="prompt"
+	{pricing}
+	{schema}
+	{onSubmit}
+	payment-qr-code={paymentQrCode}
+	success-result={successResult}
+/>

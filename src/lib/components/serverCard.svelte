@@ -5,7 +5,11 @@
 	import type { ServerWithMeta } from '$lib/types';
 	import ServerCapBadges from './serverCapBadges.svelte';
 
-	export let server: ServerWithMeta;
+	let {
+		server
+	}: {
+		server: ServerWithMeta;
+	} = $props();
 	const authorQuery = server.meta.providerPubkey
 		? createAuthorQuery(server.meta.providerPubkey)
 		: undefined;
@@ -39,9 +43,9 @@
 				</h3>
 				<span class="max-w-60">
 					<AuthorCard
-						profile={$authorQuery?.data}
+						profile={$authorQuery?.data || null}
 						variant="minimal"
-						pubkey={server.meta.providerPubkey}
+						pubkey={server.meta.providerPubkey || ''}
 					/>
 				</span>
 			</div>

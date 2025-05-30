@@ -19,28 +19,34 @@
 		ReadResourceRequest
 	} from '@modelcontextprotocol/sdk/types.js';
 
-	export let capabilityName: string;
-	export let capabilityType: CapabilityType;
-	export let pricing: CapPricing | undefined = undefined;
-	export let schema: JSONSchema7 | undefined = undefined;
-	export let uiSchema: UiSchemaRoot = {
-		submitButton: {
-			'ui:options': {
-				title: 'Execute',
-				button: {
-					class:
-						'w-fit px-4 py-2 bg-primary text-background rounded-md hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed'
+	let {
+		capabilityName,
+		capabilityType,
+		pricing = undefined,
+		schema = undefined,
+		uiSchema = {
+			submitButton: {
+				'ui:options': {
+					title: 'Execute',
+					button: {
+						class:
+							'w-fit px-4 py-2 bg-primary text-background rounded-md hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed'
+					}
+				}
+			},
+			'ui:globalOptions': {
+				input: {
+					class: 'bg-background/5'
 				}
 			}
 		},
-		'ui:globalOptions': {
-			input: {
-				class: 'bg-background/5'
-			}
-		}
-	};
-	export let onSubmit: ((value: any) => Promise<void>) | undefined = undefined;
-	export let initialValue: any = {};
+		onSubmit = undefined,
+		initialValue = {},
+		'payment-qr-code': paymentQrCode,
+		'form-content': formContent,
+		'success-result': successResult,
+		'error-description': errorDescription
+	} = $props();
 
 	function createRequestObject(
 		name: string,
@@ -57,13 +63,13 @@
 		throw new Error('Unknown capability type');
 	}
 
-	$: executionStore = capabilityExecutor.getExecutionStore(
-		createRequestObject(capabilityName, capabilityType)
+	const executionStore = $derived(
+		capabilityExecutor.getExecutionStore(createRequestObject(capabilityName, capabilityType))
 	);
 
-	let createdForm: ReturnType<typeof createForm3> | undefined;
+	let createdForm: ReturnType<typeof createForm3> | undefined = $state(undefined);
 
-	$: {
+	$effect(() => {
 		if (schema && onSubmit) {
 			createdForm = createForm3({
 				...theme,
@@ -77,7 +83,7 @@
 		} else {
 			createdForm = undefined;
 		}
-	}
+	});
 
 	onDestroy(() => {
 		capabilityExecutor.resetExecutionState(capabilityName, capabilityType);
@@ -125,8 +131,8 @@
 						</button>
 					</div>
 					<div class="rounded-md bg-background/80 p-2">
-						{#if $$slots['payment-qr-code']}
-							<slot name="payment-qr-code" />
+						{#if paymentQrCode}
+							{@render paymentQrCode?.()}
 						{:else}
 							<pre class="overflow-auto text-xs text-amber-600 dark:text-amber-200">{$executionStore
 									.paymentInfo.invoice}</pre>
@@ -143,8 +149,8 @@
 	{:else}
 		{#if createdForm}
 			<RawForm form={createdForm} class="dark flex flex-col gap-4" />
-		{:else}
-			<slot name="form-content" />
+		{:else if formContent}
+			{@render formContent?.()}
 		{/if}
 
 		{#if $executionStore.status === 'loading'}
@@ -158,8 +164,7 @@
 				</Alert.Description>
 			</Alert.Root>
 		{/if}
-
-		{#if createdForm}
+		{#if createdForm?.value && Object.keys(createdForm.value).length}
 			<div class="rounded-lg border border-primary/20 bg-background p-4">
 				<div class="mb-2 flex items-center justify-between">
 					<span class="text-sm text-primary">Form Values</span>
@@ -222,8 +227,8 @@
 										Copy Result
 									</button>
 								</div>
-								{#if $$slots['success-result']}
-									<slot name="success-result" />
+								{#if successResult}
+									{@render successResult?.()}
 								{:else}
 									<pre
 										class="whitespace-pre-wrap font-mono text-sm text-green-700 dark:text-green-300">
@@ -258,13 +263,13 @@
 		>
 			<Alert.Title class="font-semibold text-red-700 dark:text-red-300">Error</Alert.Title>
 			<Alert.Description class="text-red-600 dark:text-red-200">
-				{#if $$slots['error-description']}
-					<slot name="error-description" />
+				{#if errorDescription}
+					{@render errorDescription?.()}
 				{:else}
 					{$executionStore.error || `An error occurred while executing the ${capabilityType}.`}
 				{/if}
 			</Alert.Description>
-			{#if $executionStore.error && !$$slots['error-description']}
+			{#if $executionStore.error && !errorDescription}
 				<div
 					class="mt-2 rounded-lg border border-red-500/40 bg-background/20 p-3 shadow-sm dark:border-red-400/30 dark:bg-background/10"
 				>

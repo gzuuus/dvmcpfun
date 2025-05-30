@@ -5,15 +5,21 @@
 	import CapabilityCard from './CapabilityCard.svelte';
 
 	// Props
-	export let resourceTemplatesData: ResourcesTemplatesListWithProvider | null | undefined =
-		undefined;
-	export let isLoading: boolean = false;
-	export let error: Error | null = null;
-	export let onSelectResourceTemplate: (template: ResourceTemplate) => void = () => {};
+	let {
+		resourceTemplatesData = undefined,
+		isLoading = false,
+		error = null,
+		onSelectResourceTemplate = () => {}
+	}: {
+		resourceTemplatesData?: ResourcesTemplatesListWithProvider;
+		isLoading?: boolean;
+		error: Error | null;
+		onSelectResourceTemplate?: (resourceTemplate: ResourceTemplate) => void;
+	} = $props();
 
 	// Computed property for resource templates
-	$: resourceTemplates = resourceTemplatesData?.resourceTemplates || [];
-	$: hasResourceTemplates = resourceTemplates.length > 0;
+	const resourceTemplates = $derived(resourceTemplatesData?.resourceTemplates || []);
+	const hasResourceTemplates = $derived(resourceTemplates.length > 0);
 </script>
 
 <section>
@@ -38,7 +44,7 @@
 						description={template.description}
 						price={typeof pricing?.price === 'string' ? parseFloat(pricing.price) : pricing?.price}
 						unit={pricing?.unit}
-						type="resourceTemplate"
+						type="resourceTemplates"
 						mimeType={template.mimeType}
 						uriTemplate={template.uriTemplate}
 						capability={template}

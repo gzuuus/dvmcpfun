@@ -5,11 +5,16 @@
 	import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 
 	// Props
-	export let serverId: string;
-	export let onSelectTool: (tool: Tool) => void = () => {};
+	let {
+		serverId,
+		onSelectTool = () => {}
+	}: {
+		serverId: string;
+		onSelectTool?: (tool: Tool) => void;
+	} = $props();
 
 	// Fetch tools list for this server
-	$: toolsListQuery = serverId ? createToolsListQuery(serverId) : undefined;
+	const toolsListQuery = $derived(serverId ? createToolsListQuery(serverId) : undefined);
 </script>
 
 <section>

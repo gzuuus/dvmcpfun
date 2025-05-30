@@ -6,9 +6,9 @@
 
 	const articleQuery = createArticleQuery(page.params.id);
 
-	$: pageTitle = $articleQuery.data
-		? `${$articleQuery.data.title} | DVMCP Fun`
-		: 'Loading Article | DVMCP Fun';
+	const pageTitle = $derived(
+		$articleQuery.data ? `${$articleQuery.data.title} | DVMCP Fun` : 'Loading Article | DVMCP Fun'
+	);
 </script>
 
 <svelte:head>

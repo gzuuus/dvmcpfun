@@ -3,13 +3,17 @@
 	import { onMount } from 'svelte';
 	import { fly } from 'svelte/transition';
 
-	export let words: string[] = ['Hello', 'Svelte', 'Coders'];
-	export let duration: number = 2100;
+	let {
+		words = ['DVMCP', 'Fun'],
+		duration = 2100,
+		class: className = ''
+	}: {
+		words?: string[];
+		duration?: number;
+		class?: string;
+	} = $props();
 
-	let className: string = '';
-	export { className as class };
-
-	let index = 0;
+	let index = $state(0);
 	let chnageIndex = () => {
 		index = (index + 1) % words.length;
 	};

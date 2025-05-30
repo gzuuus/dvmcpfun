@@ -4,17 +4,24 @@
 	import ServerResourcesList from './ServerResourcesList.svelte';
 	import ServerResourceTemplatesList from './ServerResourceTemplatesList.svelte';
 
-	export let serverId: string;
-	export let onSelectResource: (resource: Resource) => void = () => {};
-	export let onSelectResourceTemplate: (template: ResourceTemplate) => void = () => {};
+	let {
+		serverId,
+		onSelectResource = () => {},
+		onSelectResourceTemplate = () => {}
+	}: {
+		serverId: string;
+		onSelectResource?: (resource: Resource) => void;
+		onSelectResourceTemplate?: (resourceTemplate: ResourceTemplate) => void;
+	} = $props();
 
-	$: resourcesQuery = serverId ? createResourcesListQuery(serverId) : undefined;
+	const resourcesQuery = $derived(serverId ? createResourcesListQuery(serverId) : undefined);
 
-	$: resourcesData = $resourcesQuery?.data?.resources || null;
-	$: resourceTemplatesData = $resourcesQuery?.data?.resourceTemplates || null;
-	$: hasResources = resourcesData?.resources && resourcesData.resources.length > 0;
-	$: hasResourceTemplates =
-		resourceTemplatesData?.resourceTemplates && resourceTemplatesData.resourceTemplates.length > 0;
+	const resourcesData = $derived($resourcesQuery?.data?.resources || null);
+	const resourceTemplatesData = $derived($resourcesQuery?.data?.resourceTemplates || null);
+	const hasResources = $derived(resourcesData?.resources && resourcesData.resources.length > 0);
+	const hasResourceTemplates = $derived(
+		resourceTemplatesData?.resourceTemplates && resourceTemplatesData.resourceTemplates.length > 0
+	);
 </script>
 
 <div>
@@ -22,14 +29,14 @@
 		<div class="py-2 text-foreground/70">No server ID provided.</div>
 	{:else if $resourcesQuery?.data}
 		<ServerResourcesList
-			{resourcesData}
+			resourcesData={resourcesData || undefined}
 			isLoading={$resourcesQuery?.isLoading}
 			error={$resourcesQuery?.error}
 			{onSelectResource}
 		/>
 
 		<ServerResourceTemplatesList
-			{resourceTemplatesData}
+			resourceTemplatesData={resourceTemplatesData || undefined}
 			isLoading={$resourcesQuery?.isLoading}
 			error={$resourcesQuery?.error}
 			{onSelectResourceTemplate}

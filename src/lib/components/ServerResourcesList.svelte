@@ -5,14 +5,21 @@
 	import CapabilityCard from './CapabilityCard.svelte';
 
 	// Props
-	export let resourcesData: ResourcesListWithProvider | null | undefined = undefined;
-	export let isLoading: boolean = false;
-	export let error: Error | null = null;
-	export let onSelectResource: (resource: Resource) => void = () => {};
+	let {
+		resourcesData = undefined,
+		isLoading = false,
+		error = null,
+		onSelectResource = () => {}
+	}: {
+		resourcesData?: ResourcesListWithProvider;
+		isLoading?: boolean;
+		error: Error | null;
+		onSelectResource?: (resource: Resource) => void;
+	} = $props();
 
 	// Computed property for resources
-	$: resources = resourcesData?.resources || [];
-	$: hasResources = resources.length > 0;
+	const resources = $derived(resourcesData?.resources || []);
+	const hasResources = $derived(resources.length > 0);
 </script>
 
 <section>

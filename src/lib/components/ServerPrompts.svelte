@@ -5,11 +5,16 @@
 	import type { Prompt } from '@modelcontextprotocol/sdk/types.js';
 
 	// Props
-	export let serverId: string;
-	export let onSelectPrompt: (prompt: Prompt) => void = () => {};
+	let {
+		serverId,
+		onSelectPrompt = () => {}
+	}: {
+		serverId: string;
+		onSelectPrompt?: (prompt: Prompt) => void;
+	} = $props();
 
 	// Fetch prompts list for this server
-	$: promptsListQuery = serverId ? createPromptsListQuery(serverId) : undefined;
+	const promptsListQuery = $derived(serverId ? createPromptsListQuery(serverId) : undefined);
 </script>
 
 <div>

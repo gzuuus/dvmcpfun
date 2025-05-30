@@ -2,7 +2,7 @@
 	import type { NostrArticle } from '$lib/queries/docs';
 	import { formatDate } from '$lib/utils';
 
-	export let article: NostrArticle;
+	let { article }: { article: NostrArticle } = $props();
 
 	const truncate = (text: string, maxLength = 150) => {
 		if (text && text.length > maxLength) {

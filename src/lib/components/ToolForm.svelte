@@ -7,9 +7,15 @@
 	import qrcode from 'qrcode-generator';
 	import { logger } from '$lib/utils/logger';
 
-	export let provider: ProviderServerMeta;
-	export let tool: Tool;
-	export let pricing: CapPricing | undefined = undefined;
+	let {
+		provider,
+		tool,
+		pricing = undefined
+	}: {
+		provider: ProviderServerMeta;
+		tool: Tool;
+		pricing?: CapPricing;
+	} = $props();
 
 	let uiSchema: UiSchemaRoot = {
 		submitButton: {
@@ -51,21 +57,57 @@
 		}
 	}
 
-	$: toolExecutionStore = capabilityExecutor.getExecutionStore({
-		method: 'tools/call',
-		params: { name: tool.name, arguments: {} }
-	});
+	const toolExecutionStore = $derived(
+		capabilityExecutor.getExecutionStore({
+			method: 'tools/call',
+			params: { name: tool.name, arguments: {} }
+		})
+	);
 
-	let qrCodeSvg = '';
-	$: {
+	let qrCodeSvg = $state('');
+	$effect(() => {
 		if ($toolExecutionStore.paymentInfo?.invoice) {
 			const qr = qrcode(0, 'L');
 			qr.addData($toolExecutionStore.paymentInfo.invoice);
 			qr.make();
 			qrCodeSvg = qr.createSvgTag({ cellSize: 4, margin: 2 });
 		}
-	}
+	});
 </script>
+
+{#snippet paymentQrCode()}
+	<div class="flex justify-center rounded-md bg-white p-4 shadow-sm">
+		{@html qrCodeSvg}
+	</div>
+{/snippet}
+
+{#snippet successResult()}
+	<div class="max-h-[800px] overflow-auto">
+		<div class="w-full min-w-0">
+			{#if Array.isArray($toolExecutionStore.result)}
+				{#each $toolExecutionStore.result as result}
+					<p
+						class="whitespace-pre-wrap break-all text-xl font-bold text-green-700 dark:text-green-200"
+					>
+						{result.type === 'text' ? result.text : JSON.stringify(result, null, 2)}
+					</p>
+				{/each}
+			{:else if typeof $toolExecutionStore.result === 'string'}
+				<p
+					class="whitespace-pre-wrap break-all text-xl font-bold text-green-700 dark:text-green-200"
+				>
+					{$toolExecutionStore.result}
+				</p>
+			{:else}
+				<p
+					class="whitespace-pre-wrap break-all text-xl font-bold text-green-700 dark:text-green-200"
+				>
+					{JSON.stringify($toolExecutionStore.result, null, 2)}
+				</p>
+			{/if}
+		</div>
+	</div>
+{/snippet}
 
 <CapabilityForm
 	capabilityName={tool.name}
@@ -75,38 +117,6 @@
 	{uiSchema}
 	{onSubmit}
 	{initialValue}
->
-	<div slot="payment-qr-code">
-		<div class="flex justify-center rounded-md bg-white p-4 shadow-sm">
-			{@html qrCodeSvg}
-		</div>
-	</div>
-
-	<div slot="success-result">
-		<div class="max-h-[800px] overflow-auto">
-			<div class="w-full min-w-0">
-				{#if Array.isArray($toolExecutionStore.result)}
-					{#each $toolExecutionStore.result as result}
-						<p
-							class="whitespace-pre-wrap break-all text-xl font-bold text-green-700 dark:text-green-200"
-						>
-							{result.type === 'text' ? result.text : JSON.stringify(result)}
-						</p>
-					{/each}
-				{:else if typeof $toolExecutionStore.result === 'string'}
-					<p
-						class="whitespace-pre-wrap break-all text-xl font-bold text-green-700 dark:text-green-200"
-					>
-						{$toolExecutionStore.result}
-					</p>
-				{:else}
-					<p
-						class="whitespace-pre-wrap break-all text-xl font-bold text-green-700 dark:text-green-200"
-					>
-						{JSON.stringify($toolExecutionStore.result, null, 2)}
-					</p>
-				{/if}
-			</div>
-		</div>
-	</div>
-</CapabilityForm>
+	payment-qr-code={paymentQrCode}
+	success-result={successResult}
+/>

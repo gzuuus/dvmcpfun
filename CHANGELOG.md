@@ -1,5 +1,15 @@
 # dvmcpfun
 
+## 0.0.5 (new spec)
+
+### Patch Changes
+
+- cb1e616: ui: tabbed capabilities in server page
+- 9e85b53: refactor: consolidate resource template handling and improve schema utils
+- 42a1cec: refactor: migrate to server-based architecture with dedicated capability components
+- cb1e616: chore: improve code quality, reduce code duplication
+- 8f59ba4: feat: implement resource templates and refactor server resources components
+
 ## 0.0.4
 
 ### Patch Changes

@@ -1,23 +1,23 @@
 <script lang="ts">
-	import { createDVMCPsQuery } from '$lib/queries/tools';
-	import DvmcpCard from '$lib/components/dvmcpCard.svelte';
+	import DvmcpCard from '$lib/components/serverCard.svelte';
 	import WordRotate from '$lib/components/wordRotate.svelte';
+	import { createServersQuery } from '$lib/queries/servers';
 	import ndkStore from '$lib/stores/nostr';
 
 	const pageTitle = 'Home | DVMCP Fun';
 
-	const dvmcpQuery = createDVMCPsQuery();
-
+	const serversQuery = createServersQuery();
 	let searchQuery = $state('');
 
 	let previousRelayCount = $state(0);
 
-	let filteredDvmcps = $derived(
-		$dvmcpQuery.data?.filter((dvmcp) => {
+	let filteredServers = $derived(
+		$serversQuery.data?.filter((server) => {
 			if (!searchQuery) return true;
 			const search = searchQuery.toLowerCase();
 			return (
-				dvmcp.name.toLowerCase().includes(search) || dvmcp.about?.toLowerCase().includes(search)
+				server.meta.name?.toLowerCase().includes(search) ||
+				server.meta.about?.toLowerCase().includes(search)
 			);
 		})
 	);
@@ -27,7 +27,7 @@
 			const currentRelayCount = $ndkStore.pool.relays.size;
 			if (currentRelayCount !== previousRelayCount) {
 				previousRelayCount = currentRelayCount;
-				$dvmcpQuery.refetch();
+				$serversQuery.refetch();
 			}
 		}
 	});
@@ -61,7 +61,7 @@
 			class="flex-1 rounded-lg border border-primary/20 bg-background px-4 py-2 text-primary/50 placeholder-primary/40 focus:border-primary/50 focus:outline-none"
 		/>
 	</div>
-	{#if $dvmcpQuery.isLoading}
+	{#if $serversQuery.isLoading}
 		<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
 			{#each Array(6) as _}
 				<div class="group animate-pulse rounded-lg border border-primary/20 bg-background p-6">
@@ -70,19 +70,19 @@
 				</div>
 			{/each}
 		</div>
-	{:else if $dvmcpQuery.isError}
+	{:else if $serversQuery.isError}
 		<div class="rounded-lg border border-destructive/20 bg-red-500/10 p-6 text-destructive">
-			Error: {$dvmcpQuery.error.message}
+			Error: {$serversQuery.error.message}
 		</div>
-	{:else if filteredDvmcps}
-		{#if filteredDvmcps.length === 0}
+	{:else if filteredServers}
+		{#if filteredServers.length === 0}
 			<div class="text-center text-primary/50">
 				No tools found matching "{searchQuery}"
 			</div>
 		{:else}
 			<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-				{#each filteredDvmcps as dvmcp (dvmcp.event.id)}
-					<DvmcpCard {dvmcp} />
+				{#each filteredServers as server (server.meta.serverId)}
+					<DvmcpCard {server} />
 				{/each}
 			</div>
 		{/if}

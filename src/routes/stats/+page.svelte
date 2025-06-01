@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { setThemeContext } from '@sjsf/shadcn-theme';
-	import { components } from '@sjsf/shadcn-theme/default';
+	import { setThemeContext } from '@sjsf/shadcn4-theme';
+	import * as components from '@sjsf/shadcn4-theme/new-york';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import TopAuthorsStats from '$lib/components/stats/TopAuthorsStats.svelte';
 	import EventCountsByKindStats from '$lib/components/stats/EventCountsByKindStats.svelte';

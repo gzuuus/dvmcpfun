@@ -5,6 +5,7 @@
 	import ndkStore from '$lib/stores/nostr';
 	import { copyToClipboard, wait } from '$lib/utils';
 	import { getHexColorFingerprintFromHexPubkey } from '$lib/utils/commons';
+	import { logger } from '$lib/utils/logger';
 	import { User } from 'lucide-svelte';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
@@ -38,6 +39,7 @@
 				open = false;
 			}
 		} catch (e) {
+			logger.error('Login failed', e, 'loginDialog:handleLogin');
 			error = e instanceof Error ? e.message : 'Login failed';
 		} finally {
 			loading = false;
@@ -154,6 +156,7 @@
 											try {
 												keyValue = generateNewKey();
 											} catch (e) {
+												logger.error('Failed to generate key', e, 'loginDialog:generateNewKey');
 												error = e instanceof Error ? e.message : 'Failed to generate key';
 											}
 										}}

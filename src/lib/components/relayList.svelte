@@ -5,15 +5,21 @@
 	import { CircleX } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 
-	export let relay: NDKRelay;
-	export let expanded = false;
-	export let relayType: 'outbox' | 'kind3' = 'kind3';
+	let {
+		relay,
+		expanded = false,
+		relayType = 'kind3'
+	}: {
+		relay: NDKRelay;
+		expanded?: boolean;
+		relayType?: 'kind3' | 'outbox';
+	} = $props();
 
-	let notices: string[] = [];
-	$: relayConnectivity = relay.connectivity;
+	let notices = $state<string[]>([]);
+	let relayConnectivity = $state(relay.connectivity);
 
 	const noticeHandler = (notice: string) => {
-		notices = [notice, ...notices];
+		notices = [...notices, notice];
 	};
 
 	onMount(() => {
@@ -53,7 +59,7 @@
 
 		<button
 			class="font-inherit flex w-full cursor-pointer items-center gap-2 border-0 bg-transparent p-0 text-left"
-			on:click={() => (expanded = !expanded)}
+			onclick={() => (expanded = !expanded)}
 		>
 			<span class="overflow-hidden text-ellipsis whitespace-nowrap font-normal">{relay.url}</span>
 			{#if relayConnectivity.openSubs.size > 0}
@@ -62,7 +68,7 @@
 				</div>
 			{/if}
 		</button>
-		<button type="button" on:click={handleRemoveRelay}>
+		<button type="button" onclick={handleRemoveRelay}>
 			<CircleX class="h-6 w-6" />
 		</button>
 	</div>

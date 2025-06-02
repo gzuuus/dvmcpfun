@@ -1,7 +1,7 @@
 import NDK from '@nostr-dev-kit/ndk';
 import { writable } from 'svelte/store';
-
-export const appRelay = ['wss://relay.dvmcp.fun'];
+// FIXME: seems we are not being able to connect to relays?
+export const appRelay = ['wss://r.dvmcp.fun'];
 export const generalRelays = ['wss://relay.nostr.net', 'wss://relay.damus.io', 'wss://nos.lol'];
 export const userMetaRelays = [
 	'wss://0.kindpag.es/',
@@ -9,9 +9,9 @@ export const userMetaRelays = [
 	'wss://relay.nostr.net'
 ];
 export const explicitRelayUrls = [
-	// ...appRelay
+	...appRelay
 	// 'wss://relay.nostrdvm.com'
-	'ws://localhost:10547'
+	// 'ws://localhost:10547'
 ];
 export const ndk: NDK = new NDK({
 	explicitRelayUrls

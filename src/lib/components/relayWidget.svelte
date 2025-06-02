@@ -10,14 +10,35 @@
 
 	let isOpen = $state(false);
 
+	// Reactive arrays for relays
+	let explicitRelays: NDKRelay[] = $state([]);
+	let outboxRelays: NDKRelay[] = $state([]);
+
+	// Effect to keep explicitRelays and outboxRelays in sync with $ndkStore
+	$effect(() => {
+		if ($ndkStore.pool?.relays) {
+			explicitRelays = Array.from($ndkStore.pool.relays.values());
+		} else {
+			explicitRelays = [];
+		}
+
+		if ($ndkStore.outboxPool?.relays) {
+			outboxRelays = Array.from($ndkStore.outboxPool.relays.values());
+		} else {
+			outboxRelays = [];
+		}
+	});
+
 	let inputRelayUrl = $state('');
 	function handleAddRelay() {
 		if (inputRelayUrl) {
 			$ndkStore.pool.addRelay(
 				new NDKRelay(inputRelayUrl, NDKRelayAuthPolicies.signIn(), $ndkStore)
 			);
-			$ndkStore.explicitRelayUrls.push(inputRelayUrl);
+			// This makes the entire store's value (the NDK instance) reactive,
+			// which will trigger the $effect above.
 			ndkStore.set($ndkStore);
+			$ndkStore.connect();
 			inputRelayUrl = '';
 		}
 	}
@@ -28,6 +49,8 @@
 				new NDKRelay(normalizeRelayUrl(relay), NDKRelayAuthPolicies.signIn(), $ndkStore)
 			);
 		});
+		// This makes the entire store's value (the NDK instance) reactive,
+		// which will trigger the $effect above.
 		ndkStore.set($ndkStore);
 	}
 </script>
@@ -54,11 +77,11 @@
 					<CircleX class="h-6 w-6" />
 				</Button>
 			</div>
-			{#if $ndkStore.pool?.relays.size}
+			{#if explicitRelays.length > 0}
 				<section>
-					<span class=" font-bold">Explicit relays</span> ({$ndkStore.pool?.relays.size}):
-					<ScrollArea class={`${$ndkStore.pool?.relays.size > 10 ? 'h-72' : ''}`}>
-						{#each $ndkStore.pool.relays.values() as relay (relay.url)}
+					<span class=" font-bold">Explicit relays</span> ({explicitRelays.length}):
+					<ScrollArea class={`${explicitRelays.length > 10 ? 'h-72' : ''}`}>
+						{#each explicitRelays as relay (relay.url)}
 							<RelayList {relay} relayType="kind3" />
 						{/each}
 					</ScrollArea>
@@ -69,11 +92,11 @@
 					<Button onclick={handleConnectToDefaultRelays}>Use default relays</Button>
 				</div>
 			{/if}
-			{#if $ndkStore.outboxPool?.relays.size}
+			{#if outboxRelays.length > 0}
 				<section>
-					<span class=" font-bold">Outbox relays</span> ({$ndkStore.outboxPool?.relays.size}):
-					<ScrollArea class={`${$ndkStore.outboxPool?.relays.size > 10 ? 'h-72' : ''}`}>
-						{#each $ndkStore.outboxPool.relays.values() as relay (relay.url)}
+					<span class=" font-bold">Outbox relays</span> ({outboxRelays.length}):
+					<ScrollArea class={`${outboxRelays.length > 10 ? 'h-72' : ''}`}>
+						{#each outboxRelays as relay (relay.url)}
 							<RelayList {relay} relayType="outbox" />
 						{/each}
 					</ScrollArea>

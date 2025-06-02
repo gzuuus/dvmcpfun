@@ -16,32 +16,42 @@
 	} = $props();
 
 	let notices = $state<string[]>([]);
-	let relayConnectivity = $state(relay.connectivity);
+	let currentConnectivityStatus = $state(relay.connectivity.status);
+	let currentOpenSubsSize = $state(relay.connectivity.openSubs.size);
 
 	const noticeHandler = (notice: string) => {
 		notices = [...notices, notice];
 	};
 
+	const updateConnectivityState = () => {
+		currentConnectivityStatus = relay.connectivity.status;
+		currentOpenSubsSize = relay.connectivity.openSubs.size;
+	};
+
 	onMount(() => {
 		relay.on('notice', noticeHandler);
-		relay.on('connect', () => (relayConnectivity = relay.connectivity));
-		relay.on('disconnect', () => (relayConnectivity = relay.connectivity));
-		relay.on('flapping', () => (relayConnectivity = relay.connectivity));
+		relay.on('connect', updateConnectivityState);
+		relay.on('disconnect', updateConnectivityState);
+		relay.on('flapping', updateConnectivityState);
+		relay.on('ready', updateConnectivityState);
 
 		return () => {
 			relay.off('notice', noticeHandler);
-			relay.off('connect', () => (relayConnectivity = relay.connectivity));
-			relay.off('disconnect', () => (relayConnectivity = relay.connectivity));
-			relay.off('flapping', () => (relayConnectivity = relay.connectivity));
+			relay.off('connect', updateConnectivityState);
+			relay.off('disconnect', updateConnectivityState);
+			relay.off('flapping', updateConnectivityState);
+			relay.off('ready', updateConnectivityState);
 		};
 	});
 
 	function handleRemoveRelay() {
-		const removeRelay =
+		const success =
 			relayType == 'kind3'
 				? $ndkStore.pool.removeRelay(relay.url)
 				: $ndkStore.outboxPool?.removeRelay(relay.url);
-		removeRelay && ndkStore.set($ndkStore);
+		if (success) {
+			ndkStore.set($ndkStore);
+		}
 	}
 </script>
 
@@ -49,12 +59,12 @@
 	<div class="inline-flex items-center gap-2">
 		<span
 			class="ml-2 h-4 w-2 rounded-full"
-			class:bg-orange-400={relayConnectivity.status === NDKRelayStatus.CONNECTING ||
-				relayConnectivity.status === NDKRelayStatus.RECONNECTING}
-			class:bg-red-500={relayConnectivity.status === NDKRelayStatus.DISCONNECTED}
-			class:bg-green-500={relayConnectivity.status === NDKRelayStatus.CONNECTED}
-			class:bg-blue-500={relayConnectivity.status === NDKRelayStatus.FLAPPING}
-			class:bg-red-600={relayConnectivity.status === NDKRelayStatus.AUTHENTICATING}
+			class:bg-orange-400={currentConnectivityStatus === NDKRelayStatus.CONNECTING ||
+				currentConnectivityStatus === NDKRelayStatus.RECONNECTING}
+			class:bg-red-500={currentConnectivityStatus === NDKRelayStatus.DISCONNECTED}
+			class:bg-green-500={currentConnectivityStatus === NDKRelayStatus.CONNECTED}
+			class:bg-blue-500={currentConnectivityStatus === NDKRelayStatus.FLAPPING}
+			class:bg-red-600={currentConnectivityStatus === NDKRelayStatus.AUTHENTICATING}
 		></span>
 
 		<button
@@ -62,9 +72,9 @@
 			onclick={() => (expanded = !expanded)}
 		>
 			<span class="overflow-hidden text-ellipsis whitespace-nowrap font-normal">{relay.url}</span>
-			{#if relayConnectivity.openSubs.size > 0}
+			{#if currentOpenSubsSize > 0}
 				<div class="float-right ml-2 cursor-pointer text-sm font-light">
-					{relayConnectivity.openSubs.size}{relayConnectivity.openSubs.size === 1 ? '+' : '++'}
+					{currentOpenSubsSize}{currentOpenSubsSize === 1 ? '+' : '++'}
 				</div>
 			{/if}
 		</button>
@@ -73,7 +83,7 @@
 		</button>
 	</div>
 
-	{#if relay.connectionStats.attempts > 1 && relayConnectivity.status !== NDKRelayStatus.CONNECTED}
+	{#if relay.connectionStats.attempts > 1 && currentConnectivityStatus !== NDKRelayStatus.CONNECTED}
 		<div class="mt-2 text-sm font-light">
 			<small>
 				Reconnection attempts: {relay.connectionStats.attempts}

@@ -1,5 +1,12 @@
 # dvmcpfun
 
+## 0.0.6
+
+### Patch Changes
+
+- add relay urls to nostr profile references
+- 21e1bf5: fix: reactive relay status in relayWidget
+
 ## 0.0.5 (new spec)
 
 ### Patch Changes

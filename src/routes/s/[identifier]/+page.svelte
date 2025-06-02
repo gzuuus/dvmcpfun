@@ -29,6 +29,8 @@
 	} from '@modelcontextprotocol/sdk/types.js';
 	import ResourcesTemplatesForm from '$lib/components/ResourcesTemplatesForm.svelte';
 	import * as components from '@sjsf/shadcn4-theme/new-york';
+	import { SERVER_ANNOUNCEMENT_KIND } from '@dvmcp/commons/core';
+	import ndkStore from '$lib/stores/nostr';
 
 	const serverQuery = createServerQuery(page.params.identifier);
 
@@ -36,9 +38,9 @@
 		$serverQuery.data?.meta.serverId && $serverQuery.data?.meta.providerPubkey
 			? nip19.naddrEncode({
 					pubkey: $serverQuery.data.meta.providerPubkey,
-					kind: 31990,
+					kind: SERVER_ANNOUNCEMENT_KIND,
 					identifier: $serverQuery.data.meta.serverId,
-					relays: []
+					relays: Array.from($ndkStore.pool.relays.values()).map((r) => r.url)
 				})
 			: ''
 	);
@@ -47,7 +49,7 @@
 		$serverQuery.data?.meta.providerPubkey
 			? nip19.nprofileEncode({
 					pubkey: $serverQuery.data.meta.providerPubkey,
-					relays: []
+					relays: Array.from($ndkStore.pool.relays.values()).map((r) => r.url)
 				})
 			: ''
 	);

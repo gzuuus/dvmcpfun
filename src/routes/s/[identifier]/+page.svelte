@@ -54,9 +54,6 @@
 			: ''
 	);
 
-	// Fetch server details
-
-	// Fetch capabilities lists for pricing information
 	const toolsListQuery = $derived(
 		$serverQuery.data?.meta.serverId
 			? createToolsListQuery($serverQuery.data.meta.serverId)
@@ -75,13 +72,11 @@
 			: undefined
 	);
 
-	// State for selected capabilities
 	let selectedTool: Tool | null = $state(null);
 	let selectedResource: Resource | null = $state(null);
 	let selectedResourceTemplate: ResourceTemplate | null = $state(null);
 	let selectedPrompt: Prompt | null = $state(null);
 
-	// Handler functions for capability selection
 	function handleSelectTool(tool: Tool) {
 		selectedTool = tool;
 		selectedResource = null;
@@ -130,21 +125,9 @@
 
 	let activeTab = $state<'tools' | 'resources' | 'prompts'>();
 	$effect(() => {
-		hasTools = !!(
-			$serverQuery.data?.server.capabilities &&
-			typeof $serverQuery.data?.server.capabilities === 'object' &&
-			'tools' in $serverQuery.data?.server.capabilities
-		);
-		hasResources = !!(
-			$serverQuery.data?.server.capabilities &&
-			typeof $serverQuery.data?.server.capabilities === 'object' &&
-			'resources' in $serverQuery.data?.server.capabilities
-		);
-		hasPrompts = !!(
-			$serverQuery.data?.server.capabilities &&
-			typeof $serverQuery.data?.server.capabilities === 'object' &&
-			'prompts' in $serverQuery.data?.server.capabilities
-		);
+		hasTools = !!$toolsListQuery?.data?.tools;
+		hasResources = !!$resourcesListQuery?.data?.resources;
+		hasPrompts = !!$promptsListQuery?.data?.prompts;
 		activeTab = hasTools ? 'tools' : hasResources ? 'resources' : 'prompts';
 	});
 

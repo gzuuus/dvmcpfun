@@ -181,7 +181,7 @@
 		{#if $executionStore.status === 'loading'}
 			<Alert.Root class="flex flex-col gap-2 border-blue-500/30 bg-blue-500/10">
 				<div class="flex items-center gap-2">
-					<Spinner size={4} borderThickness={4} />
+					<Spinner size={20} />
 					<Alert.Title class="m-0 text-blue-400">Executing {capabilityType}</Alert.Title>
 				</div>
 				<Alert.Description class="text-blue-300">

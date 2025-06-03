@@ -10,6 +10,7 @@
 	}: {
 		server: ServerWithMeta;
 	} = $props();
+
 	const authorQuery = server.meta.providerPubkey
 		? createAuthorQuery(server.meta.providerPubkey)
 		: undefined;
@@ -59,7 +60,7 @@
 				{#if server.meta.website}
 					<p class="mt-2 line-clamp-2 text-foreground">{server.meta.website}</p>
 				{/if}
-				<ServerCapBadges server={server.server} />
+				<ServerCapBadges server={server.server} id={server.meta.serverId} />
 			</div>
 		{/if}
 	</a>

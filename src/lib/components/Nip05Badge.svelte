@@ -24,7 +24,7 @@
 </script>
 
 {#if isLoading}
-	<Spinner color="currentColor" size={2} borderThickness={2} />
+	<Spinner size={iconSize} />
 	<span
 		class={`flex ${maxWidthClass} items-center gap-1 truncate font-mono text-xs ${textColor}`}
 		title={nip05}

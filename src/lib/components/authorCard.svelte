@@ -86,7 +86,7 @@
 				{#if nip05}
 					<span class="text-foreground/40">|</span>
 					{#if $nip05ValidationQuery?.isLoading}
-						<Spinner color="currentColor" size={2} borderThickness={2} />
+						<Spinner size={16} />
 						<span
 							class="flex max-w-[16ch] items-center gap-1 truncate font-mono text-xs text-foreground/40"
 							title={nip05}
@@ -179,7 +179,7 @@
 					{#if nip05}
 						<span class="text-foreground/40">|</span>
 						{#if $nip05ValidationQuery?.isLoading}
-							<Spinner color="currentColor" size={2} borderThickness={2} />
+							<Spinner color="currentColor" size={16} thickness={2} />
 							<span
 								class="flex max-w-[24ch] items-center gap-1 truncate font-mono text-xs text-foreground/40"
 								title={nip05}>{nip05}</span

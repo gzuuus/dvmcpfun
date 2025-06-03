@@ -45,8 +45,7 @@ export const login = async (
 				if (!formData) throw new Error('Form data required for NSEC login');
 				const key = formData.get('key') as string;
 				const password = formData.get('password') as string;
-				const temporary = formData.get('temporary') === 'true';
-				return loginWithPrivateKey(key, password, temporary);
+				return loginWithPrivateKey(key, password);
 			}
 			case 'NIP46':
 				throw new Error('NIP-46 login not implemented');
@@ -82,11 +81,7 @@ export const loginWithExtension = async (): Promise<boolean> => {
 	}
 };
 
-export const loginWithPrivateKey = async (
-	key: string,
-	password: string,
-	temporary = false
-): Promise<boolean> => {
+export const loginWithPrivateKey = async (key: string, password: string): Promise<boolean> => {
 	key = key.trim();
 	const encryptedKey = key.startsWith('nsec')
 		? createNcryptSec(key, password).ncryptsec
@@ -95,14 +90,10 @@ export const loginWithPrivateKey = async (
 			: null;
 
 	if (!encryptedKey) throw new Error('Invalid key format. Must be nsec or ncryptsec');
-	return handlePrivateKeyLogin(encryptedKey, password, temporary);
+	return handlePrivateKeyLogin(encryptedKey, password);
 };
 
-const handlePrivateKeyLogin = async (
-	encryptedKey: string,
-	password: string,
-	temporary: boolean
-): Promise<boolean> => {
+const handlePrivateKeyLogin = async (encryptedKey: string, password: string): Promise<boolean> => {
 	try {
 		const decryptedKey = decrypt(encryptedKey, password);
 		const hexKey = typeof decryptedKey === 'string' ? decryptedKey : bytesToHex(decryptedKey);

@@ -1,7 +1,13 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import { login, logout, generateNewKey, createNcryptSec } from '$lib/stores/login';
+	import {
+		login,
+		logout,
+		generateNewKey,
+		createNcryptSec,
+		getStoredAccount
+	} from '$lib/stores/login';
 	import ndkStore from '$lib/stores/nostr';
 	import { copyToClipboard, wait } from '$lib/utils';
 	import { getHexColorFingerprintFromHexPubkey } from '$lib/utils/commons';
@@ -9,14 +15,34 @@
 	import { User } from 'lucide-svelte';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
+	import { onMount } from 'svelte';
 
-	let open = $state(false);
+	let {
+		open = $bindable(false),
+		initialMethod = 'NIP07',
+		autoFocus = false,
+		isAutoLogin = false
+	} = $props<{
+		open?: boolean;
+		initialMethod?: 'NIP07' | 'NSEC';
+		autoFocus?: boolean;
+		isAutoLogin?: boolean;
+	}>();
 	let showEncryptedKey = $state(false);
-	let loginMethod = $state<'NIP07' | 'NSEC'>('NIP07');
+	let loginMethod = $state<'NIP07' | 'NSEC'>(initialMethod);
 	let loading = $state(false);
 	let error = $state('');
 	let keyValue = $state('');
 	let encryptedKey = $state('');
+
+	onMount(() => {
+		if (autoFocus && initialMethod === 'NSEC') {
+			const storedAccount = getStoredAccount();
+			if (storedAccount?.metadata?.encryptedKey) {
+				keyValue = storedAccount.metadata.encryptedKey;
+			}
+		}
+	});
 
 	const handleLogin = async (method: 'NIP07' | 'NSEC', formData?: FormData) => {
 		loading = true;
@@ -33,7 +59,7 @@
 				}
 			}
 
-			const success = await login(method, formData);
+			const success = await login(method, formData, true);
 			if (success && !showEncryptedKey) {
 				await wait(1000);
 				open = false;
@@ -120,6 +146,16 @@
 						</Button>
 					{:else}
 						<div class="flex flex-col gap-4">
+							{#if isAutoLogin}
+								<div
+									class="rounded-md border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950"
+								>
+									<p class="text-sm text-blue-800 dark:text-blue-200">
+										Auto-login. Your encrypted key has been pre-filled. Please enter your password
+										to decrypt your private key and login.
+									</p>
+								</div>
+							{/if}
 							<form
 								class="flex flex-col gap-4"
 								onsubmit={(e) => {

@@ -1,5 +1,7 @@
+import { NOTIFICATION_KIND, REQUEST_KIND, RESPONSE_KIND } from '@dvmcp/commons/core';
+
 export const statsDvmcpPubkey = '6b3780ef2972e73d370b84a3e51e7aa9ae34bf412938dcfbd9c5f63b221416c8';
-export const statsServerId = 'dvm-announcement-dvmcp-relay-monitor';
+export const statsServerId = 'dvmcp-analay';
 export type TimeFilterValue = 'last_24_hours' | 'last_week' | 'last_month' | 'all_time';
 
 // Filter options
@@ -27,7 +29,7 @@ export const limitOptions: { value: number; label: string }[] = [
 export const kindOptions: { value: number | string; label: string }[] = [
 	// value can be number or string ('')
 	{ value: '', label: 'All Kinds' },
-	{ value: 6910, label: 'Kind 6910' },
-	{ value: 5910, label: 'Kind 5910' },
-	{ value: 7000, label: 'Kind 7000' }
+	{ value: RESPONSE_KIND, label: `Responses (${RESPONSE_KIND})` },
+	{ value: REQUEST_KIND, label: `Requests (${REQUEST_KIND})` },
+	{ value: NOTIFICATION_KIND, label: `Notifications (${NOTIFICATION_KIND})` }
 ] as const;

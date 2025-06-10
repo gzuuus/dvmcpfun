@@ -33,7 +33,13 @@
 		rawData?: (result: any[]) => any;
 	}>();
 
-	const executionStore = capabilityExecutor.getExecutionStore(toolName);
+	const executionStore = capabilityExecutor.getExecutionStore({
+		method: 'tools/call',
+		params: {
+			name: toolName,
+			arguments: {}
+		}
+	});
 	let activeTab = $state(initialActiveTab);
 	let chartCanvas = $state<HTMLCanvasElement | null>(null);
 	let chart = $state<Chart | null>(null);

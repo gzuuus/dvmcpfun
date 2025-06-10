@@ -25,6 +25,7 @@ import type {
 	GetPromptRequest,
 	ReadResourceRequest
 } from '@modelcontextprotocol/sdk/types.js';
+import { getCachedToolExecution, setCachedToolExecution } from '$lib/utils/tools';
 
 type RequestType = CallToolRequest | GetPromptRequest | ReadResourceRequest;
 
@@ -129,7 +130,7 @@ export class CapabilityExecutor {
 	 */
 	public async executeTool(
 		tool: Tool,
-		params: Record<string, unknown>,
+		params: CallToolRequest['params']['arguments'],
 		providerPk: string,
 		serverId?: string
 	): Promise<unknown> {
@@ -140,7 +141,28 @@ export class CapabilityExecutor {
 				arguments: filterOptionalParameters(params, tool.inputSchema as JSONSchema7)
 			}
 		};
-		return this._executeCapabilityInternal(toolRequest, providerPk, serverId);
+		const executionStore = this.getExecutionStore(toolRequest);
+
+		const cachedResult = getCachedToolExecution(tool, params, providerPk, serverId);
+
+		if (cachedResult !== undefined) {
+			logger.info(`Using cached result for tool ${tool.name}`, 'CapabilityExecutor:executeTool');
+			executionStore.update((state) => ({
+				...state,
+				status: 'success',
+				result: cachedResult,
+				error: null
+			}));
+			return cachedResult;
+		}
+
+		try {
+			const result = await this._executeCapabilityInternal(toolRequest, providerPk, serverId);
+			setCachedToolExecution(tool, params || {}, providerPk, result, serverId);
+			return result;
+		} catch (error) {
+			throw error;
+		}
 	}
 
 	/**
@@ -175,10 +197,7 @@ export class CapabilityExecutor {
 			}
 		};
 
-		// Get the execution store for this resource template
 		const executionStore = this.getExecutionStore(resourceReadRequest);
-
-		// Reset the store to ensure we start fresh
 		executionStore.update((state) => ({ ...state, status: 'idle', result: null, error: null }));
 
 		return this._executeCapabilityInternal(resourceReadRequest, providerPk, serverId);

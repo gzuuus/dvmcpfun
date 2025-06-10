@@ -1,5 +1,5 @@
 import type { CallToolRequest, Tool } from '@modelcontextprotocol/sdk/types.js';
-import { statsServerId } from '../../routes/stats/constants'; // Adjust path as needed after file creation
+import { statsServerId } from '../../routes/stats/constants';
 import { fetchToolsListByServerId } from '$lib/queries/servers';
 import { capabilityExecutor } from '$lib/services/capabilityExecutor';
 import { logger } from '$lib/utils/logger';
@@ -15,7 +15,7 @@ import { logger } from '$lib/utils/logger';
  */
 export async function executeStatQuery(
 	toolName: string,
-	params: CallToolRequest['params']
+	params: CallToolRequest['params']['arguments']
 ): Promise<Tool | undefined> {
 	try {
 		const toolsList = await fetchToolsListByServerId(statsServerId);
@@ -28,21 +28,20 @@ export async function executeStatQuery(
 			throw new Error(`Tool '${toolName}' not found on server '${statsServerId}'`);
 		}
 
-		// Execute the tool with provider pubkey and server ID from the ToolsListWithProvider
 		await capabilityExecutor.executeTool(
 			tool,
 			params,
 			toolsList.providerPubkey || '',
 			toolsList.serverId
 		);
-		return tool; // Return the tool object which includes the description
+		return tool;
 	} catch (err) {
 		logger.error(
 			`Error executing stats query for tool '${toolName}'`,
 			err,
 			'stats:executeStatQuery'
 		);
-		return undefined; // Indicate failure
+		return undefined;
 	}
 }
 

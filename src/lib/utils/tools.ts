@@ -1,7 +1,8 @@
 import type { NDKEvent } from '@nostr-dev-kit/ndk';
 import { parseContent, parseCapabilityListEvent } from './commons';
-import type { CapPricing, ToolsList } from '$lib/types';
+import type { ToolsList } from '$lib/types';
 import type { ListToolsResult, Tool } from '@modelcontextprotocol/sdk/types.js';
+import { queryClient } from '$lib/queries/queryClient';
 
 /**
  * Parse a tools list event (kind 31317)
@@ -25,16 +26,23 @@ export const parseToolsList = (event: NDKEvent): ToolsList | null => {
 	};
 };
 
+export const toolKeys = {
+	all: ['tools'] as const,
+	execution: (hash: string) => [...toolKeys.all, 'execution', hash] as const
+};
+
 export function createToolExecutionHash(
 	tool: Tool,
 	params: Record<string, unknown>,
-	providerPk: string
+	providerPk: string,
+	serverId?: string
 ): string {
 	const executionString = JSON.stringify({
 		toolName: tool.name,
 		toolId: tool.id || '',
 		params,
-		providerPk
+		providerPk,
+		serverId
 	});
 
 	let hash = 5381;
@@ -44,3 +52,30 @@ export function createToolExecutionHash(
 
 	return (hash >>> 0).toString(16);
 }
+
+/**
+ * Get cached tool execution result if available
+ */
+export const getCachedToolExecution = (
+	tool: Tool,
+	params: Record<string, unknown> | undefined,
+	providerPk: string,
+	serverId?: string
+): unknown | undefined => {
+	const executionHash = createToolExecutionHash(tool, params || {}, providerPk, serverId);
+	return queryClient.getQueryData(toolKeys.execution(executionHash));
+};
+
+/**
+ * Cache tool execution result for future use
+ */
+export const setCachedToolExecution = (
+	tool: Tool,
+	params: Record<string, unknown>,
+	providerPk: string,
+	result: unknown,
+	serverId?: string
+): void => {
+	const executionHash = createToolExecutionHash(tool, params, providerPk, serverId);
+	queryClient.setQueryData(toolKeys.execution(executionHash), result);
+};

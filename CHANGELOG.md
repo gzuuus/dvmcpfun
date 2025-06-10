@@ -1,5 +1,12 @@
 # dvmcpfun
 
+## 0.0.7
+
+### Patch Changes
+
+- cf97e69: redesign spinner component and implement auto-login functionality
+- feat: implement tool execution caching and update stats server configuration
+
 ## 0.0.6
 
 ### Patch Changes

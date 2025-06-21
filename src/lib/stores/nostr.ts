@@ -9,9 +9,8 @@ export const userMetaRelays = [
 	'wss://relay.nostr.net'
 ];
 export const explicitRelayUrls = [
-	// ...appRelay
-	// 'wss://relay.nostrdvm.com'
-	'ws://localhost:10547'
+	...appRelay
+	// 'ws://localhost:10547'
 ];
 export const ndk: NDK = new NDK({
 	explicitRelayUrls

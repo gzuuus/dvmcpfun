@@ -30,6 +30,7 @@ export interface DVMCPContent {
 export interface ProviderServerMeta extends DVMCPContent {
 	providerPubkey?: string;
 	serverId?: string;
+	supportEncryption?: string;
 }
 
 // Server with metadata

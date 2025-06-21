@@ -31,6 +31,8 @@
 	import * as components from '@sjsf/shadcn4-theme/new-york';
 	import { SERVER_ANNOUNCEMENT_KIND } from '@dvmcp/commons/core';
 	import ndkStore from '$lib/stores/nostr';
+	import Badge from '$lib/components/ui/badge/badge.svelte';
+	import { Lock } from 'lucide-svelte';
 
 	const serverQuery = createServerQuery(page.params.identifier);
 
@@ -138,6 +140,10 @@
 	function setValue(newValue: 'tools' | 'resources' | 'prompts' | undefined) {
 		activeTab = newValue;
 	}
+
+	$effect(() => {
+		console.log($serverQuery.data);
+	});
 </script>
 
 <svelte:head>
@@ -209,6 +215,15 @@
 								variant="compact"
 								pubkey={$serverQuery.data.meta.providerPubkey || ''}
 							/>
+						</div>
+						<div class="mb-6">
+							{#if $serverQuery.data.meta.supportEncryption}
+								<Badge>
+									<section class="flex gap-1">
+										<Lock size="14" />Supports encryption
+									</section>
+								</Badge>
+							{/if}
 						</div>
 						{#if selectedTool || selectedResource || selectedResourceTemplate || selectedPrompt}
 							<!-- Selected capability details -->

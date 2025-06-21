@@ -2,7 +2,7 @@ import type { NDKEvent } from '@nostr-dev-kit/ndk';
 import { parseContent } from './commons';
 import type { ServerWithMeta } from '$lib/types';
 import { logger } from '$lib/utils/logger';
-import { TAG_UNIQUE_IDENTIFIER } from '@dvmcp/commons/core';
+import { TAG_SUPPORT_ENCRYPTION, TAG_UNIQUE_IDENTIFIER } from '@dvmcp/commons/core';
 import type { Implementation } from '@modelcontextprotocol/sdk/types.js';
 
 /**
@@ -29,15 +29,15 @@ export const parseServer = async (event: NDKEvent): Promise<ServerWithMeta | nul
 		let name = event.tags.find((tag) => tag[0] === 'name')?.[1] || '';
 
 		// If name is not in tags, try to get it from serverInfo
-		if (!name && parsedContent.serverInfo && typeof parsedContent.serverInfo === 'object') {
-			name = (parsedContent.serverInfo as any).name || '';
+		if (!name && parsedContent.serverInfo) {
+			name = parsedContent.name;
 		}
 
 		const about = event.tags.find((tag) => tag[0] === 'about')?.[1];
 		const picture = event.tags.find((tag) => tag[0] === 'picture')?.[1];
 		const website = event.tags.find((tag) => tag[0] === 'website')?.[1];
 		const banner = event.tags.find((tag) => tag[0] === 'banner')?.[1];
-
+		const supportEncryption = event.tags.find((tag) => tag[0] === TAG_SUPPORT_ENCRYPTION)?.[1];
 		// Return the server with metadata
 		return {
 			server: parsedContent,
@@ -48,7 +48,8 @@ export const parseServer = async (event: NDKEvent): Promise<ServerWithMeta | nul
 				about,
 				picture,
 				website,
-				banner
+				banner,
+				supportEncryption
 			}
 		};
 	} catch (error) {

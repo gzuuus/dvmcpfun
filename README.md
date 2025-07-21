@@ -1,3 +1,5 @@
+> **Important Note:**  This project is archived. It has been superseeded by [ContextVM/sdk](https://github.com/contextvm/ts-sdk).
+
 # dvmcp.fun
 
 **dvmcp.fun** is a web playground and catalog for the [dvmcp protocol](https://github.com/gzuuus/dvmcp). It lets anyone discover and interact with MCP servers running on the Nostr network, making it easy to find, run, and experiment with new MCP servers for use with large language models (LLMs).
